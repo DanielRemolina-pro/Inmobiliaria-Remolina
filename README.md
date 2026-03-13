@@ -211,18 +211,19 @@ integración con mapas
 
 backend con Python o Flask
 
-👨‍💻 Autor
+👨‍💻 Autores
 
 Proyecto desarrollado por:
 
-Daniel Remolina
-Kevin Guerrero
-Sebastian Pedraza
-Brahiyan Sanches
 
-
-
-
-Daniel Remolina
-
+Daniel Remolina -
 Ingeniero y desarrollador en formación en desarrollo web.
+
+Brahiyan Sanches -
+Ingeniero y desarrollador en formación en desarrollo web.
+
+Kevin Guerrero -
+Scrum master y organizador del proyecto
+
+Sebastian Pedraza -
+el lindo
