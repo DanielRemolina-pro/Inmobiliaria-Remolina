@@ -9,10 +9,13 @@ body {
     line-height: 1.6;
 }
 
+<<<<<<< HEAD
 .oculto {
     display: none !important;
 }
 
+=======
+>>>>>>> 0f5ce75e07ad749c42b04d4643ec7aeb65624f9b
 header {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -193,6 +196,7 @@ footer {
         gap: 1rem;
     }
 }
+<<<<<<< HEAD
 
 #vista-detalles {
     max-width: 800px;
@@ -275,3 +279,5 @@ footer {
         max-height: 250px;
     }
 }
+=======
+>>>>>>> 0f5ce75e07ad749c42b04d4643ec7aeb65624f9b
