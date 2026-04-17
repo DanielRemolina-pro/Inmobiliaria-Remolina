@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Inmobiliaria Remolina</div>
+            <ul class="nav-links"> 
+                <li><a href="#">inicio</a></li>
+                <li><a href="#propiedades">Propiedades</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+                <li><a href="login.html" target="_blank">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="hero">
+            <h1>Encuentra tu hogar ideal</h1>
+            <p>las mejores propiedades en las mejores ubicacions a un gran precio</p>
+            <button class="cta-button" id="btn-ver-propiedades">Ver propiedades</button>
+        </section>
+
+        <section id="propiedades">
+
+            <h2>Propiedades destacadas</h2>
+            <div class="propiedades-grid">
+                <div class="propiedad-card">
+                    <img src="img/propiedad1.jpeg" alt="Casa moderna con piscina">
+                    <h3>Villa moderna</h3>
+                    <p class="precio">2000.000.000.00$</p> 
+                    <p class="descripcion">Hermosa villa con piscina y jardin</p>
+                    <button>Ver Detalles</button>
+                </div>
+                <div class="propiedad-card">
+                    <img src="img/propiedad2.jpeg" alt="Apartamento con una excelente ubicacion">
+                    <h3>Apartamento de lujo</h3>
+                    <p class="precio">700.000.000.00$</p> 
+                    <p class="descripcion">Apartamento de lujo con una excelente vista</p>
+                    <button>Ver Detalles</button>
+                </div>
+                <div class="propiedad-card">
+                    <img src="img/propiedad3.jpeg" alt="Finca grande y tranquila">
+                    <h3>Finca privada</h3>
+                    <p class="precio">1300.000.000.00$</p> 
+                    <p class="descripcion">Hermosa finca perfecta para cultivo y ganaderia</p>
+                    <button>Ver Detalles</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="contacto">
+            <h2>Contacto</h2>
+            <p>Escríbeme a: <a href="mailto:danielremo3214@gmail.com">danielremo3214@gmail.com</a></p>
+            <p>Teléfono: <a href="tel:+573054152644">305 415 2644</a></p>
+        </section>
+
+        <section id="vista-detalles" class="oculto">
+            <div class="detalle-contenido">
+                <img id="propiedad-imagen" src="" alt="">
+                <div class="detalle-info">
+                    <h1 id="propiedad-titulo"></h1>
+                    <p class="detalle-precio" id="propiedad-precio"></p>
+                    <p class="detalle-descripcion" id="propiedad-descripcion"></p>
+                    <button class="btn-contactar">Contactar</button>
+                </div>
+            </div>
+            <button class="btn-volver" id="btn-volver">← Volver a propiedades</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; Inmobiliaria Remolina. Todos los derechos reservados</p>
+    </footer>
+
+    <div id="fab-group" class="floating-actions">
+        <div id="fab-items" class="fab-items oculto" aria-label="Opciones de contacto">
+            <div class="fab-item">
+                <span class="fab-label">Agendar cita</span>
+                <a id="fab-calendar" class="fab-circle fab-calendar" href="https://calendly.com/danielremo3214/30min" target="_blank" rel="noopener" title="Agendar cita">📅</a>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">WhatsApp</span>
+                <a id="fab-whatsapp" class="fab-circle fab-whatsapp" href="https://wa.me/573054152644?text=¡Hola!%20Estoy%20interesado%20en%20una%20propiedad" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+            </div>
+        </div>
+        <button id="fab-main" class="fab-main" aria-label="Abrir opciones">
+            <span class="ico ico-plus">+</span>
+            <span class="ico ico-close">×</span>
+        </button>
+    </div>
+
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+</body>
+</html>
