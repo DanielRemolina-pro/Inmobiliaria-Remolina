@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — Remolina Inmobiliaria</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { overflow: hidden; }
+    @media (max-width: 768px) { body { overflow: auto; } }
+
+    .login-visual-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0.45;
+    }
+
+    .field-wrap {
+      position: relative;
+    }
+
+    .field-wrap input {
+      background: var(--obsidian-4);
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      color: var(--ivory);
+      font-family: var(--ff-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+    .field-wrap input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+    .field-wrap input::placeholder { color: var(--ivory-dimmer); }
+
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ivory-dimmer);
+      margin-bottom: 0.5rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 10px;
+      background: var(--gold);
+      color: var(--obsidian);
+      font-family: var(--ff-body);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      letter-spacing: 0.03em;
+    }
+    .submit-btn:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+    .submit-btn:active { transform: translateY(0); }
+
+    /* Animated border on card */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+      border-radius: 20px;
+      padding: 7px;
+      background: linear-gradient(135deg, rgba(133, 126, 66, 0.3), rgba(201,168,76,0.05), rgba(201,168,76,0.2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .login-card { position: relative; }
+    
+    .divider {
+      display: flex; align-items: center; gap: 1rem;
+      color: var(--ivory-dimmer); font-size: 0.8rem;
+      margin: 0.5rem 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border-soft);
+    }
+
+    /* Success check animation */
+    @keyframes checkIn {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .success-check {
+      font-size: 3rem;
+      animation: checkIn 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+      display: block; text-align: center; margin-bottom: 0.5rem;
+    }
+
+    /* Floating label effect */
+    .strength-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border-soft);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease, background 0.3s ease;
+      width: 0%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- ── Visual side ── -->
+  <div class="login-visual">
+    <img 
+      class="login-visual-img"
+      src="videos/login.jpg"
+      alt="Propiedad de lujo"
+    >
+    <div class="login-visual-overlay">
+      <div style="margin-bottom:3rem;">
+        <span style="font-family:var(--ff-mono); font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:1rem;">Bienvenido de vuelta</span>
+        <h1 class="login-visual-title">
+          Tu próximo<br>hogar te <em>espera</em>
+        </h1>
+        <p class="login-visual-sub">
+          Accede a tu cuenta para explorar propiedades exclusivas, gestionar favoritos y agendar visitas personalizadas.
+        </p>
+      </div>
+
+      <!-- Quote -->
+      <div style="background:rgba(201,168,76,0.08); border:1px solid var(--border); border-radius:12px; padding:1.5rem; max-width:380px;">
+        <p style="font-family:var(--ff-display); font-size:1.1rem; font-style:italic; color:var(--ivory); line-height:1.6; margin-bottom:0.75rem;">
+          "Encontré la casa de mis sueños gracias a la Inmobiaria Remolina. El proceso fue impecable."
+        </p>
+        <p style="font-size:0.8rem; color:var(--gold);">— Kevin Guerrero, GM en Chess</p>
+      </div>
+
+      <div class="login-visual-bottom">
+        <div class="login-stat">
+          <div class="num">+120</div>
+          <div class="lbl">Propiedades</div>
+        </div>
+        <div class="login-stat">
+          <div class="num">8 años</div>
+          <div class="lbl">Experiencia</div>
+        </div>
+        <div class="login-stat">
+          <div class="num">98%</div>
+          <div class="lbl">Satisfacción</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form panel ── -->
+  <div class="login-panel">
+    <div class="login-card">
+
+      <!-- Brand -->
+      <div class="login-brand" style="margin-bottom:2.5rem;">
+        <a href="index.html" style="display:inline-flex; align-items:center; gap:0.85rem; line-height:1;">
+          <img src="videos/logo.png" alt="Logo Remolina" style="width:46px; height:46px; object-fit:contain; border-radius:8px; filter:brightness(1.1);">
+          <div style="display:flex; flex-direction:column;">
+            <span class="logo-main">Remolina</span>
+            <span class="logo-sub">Inmobiliaria</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Tabs (HU011, HU012) -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-target="login-form">Iniciar sesión</button>
+        <button type="button" class="auth-tab" data-target="register-form">Crear cuenta</button>
+      </div>
+
+      <div class="auth-forms">
+
+        <!-- LOGIN (HU012) -->
+        <form id="login-form" class="auth-form active">
+          <div>
+            <h2 style="font-family:var(--ff-display); font-size:1.7rem; font-weight:300; color:var(--ivory); margin-bottom:0.25rem;">Bienvenido</h2>
+            <p class="auth-sub" style="font-size:0.85rem; color:var(--ivory-dimmer);">Ingresa tus credenciales para continuar</p>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div>
+              <label class="form-label">Correo electrónico</label>
+              <div class="field-wrap">
+                <input type="email" id="login-email" placeholder="correo@ejemplo.com" required autocomplete="email">
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Contraseña</label>
+              <div class="field-wrap password-wrapper">
+                <input type="password" id="login-password" placeholder="Tu contraseña" required autocomplete="current-password">
+                <button type="button" class="toggle-password">Mostrar</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="loginBtn">Entrar</button>
+
+          <p class="auth-message" id="login-message" style="text-align:center; font-size:0.875rem; min-height:1.2rem;"></p>
+        </form>
+
+        <!-- REGISTER (HU011) -->
+        <form id="register-form" class="auth-form">
+          <div>
+            <h2 style="font-family:var(--ff-display); font-size:1.7rem; font-weight:300; color:var(--ivory); margin-bottom:0.25rem;">Crear cuenta</h2>
+            <p class="auth-sub" style="font-size:0.85rem; color:var(--ivory-dimmer);">Únete y accede a todas las funciones</p>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div>
+              <label class="form-label">Nombre completo</label>
+              <div class="field-wrap">
+                <input type="text" id="register-name" placeholder="Tu nombre" required autocomplete="name">
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Correo electrónico</label>
+              <div class="field-wrap">
+                <input type="email" id="register-email" placeholder="correo@ejemplo.com" required autocomplete="email">
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Contraseña <span style="color:var(--ivory-dimmer); font-size:0.7rem;">(mín. 6 caracteres)</span></label>
+              <div class="field-wrap password-wrapper">
+                <input type="password" id="register-password" placeholder="Crea una contraseña segura" required autocomplete="new-password" minlength="6">
+                <button type="button" class="toggle-password">Mostrar</button>
+              </div>
+              <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="registerBtn">Crear cuenta</button>
+
+          <p class="auth-message" id="register-message" style="text-align:center; font-size:0.875rem; min-height:1.2rem;"></p>
+        </form>
+      </div>
+
+      <!-- Welcome state (logged in — HU013) -->
+      <div id="user-welcome" class="auth-welcome oculto">
+        <span class="success-check"></span>
+        <p class="auth-welcome-name">Hola, <span id="user-name" style="color:var(--gold);"></span></p>
+        <p class="auth-welcome-sub">Has iniciado sesión correctamente.</p>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <a href="index.html" class="btn btn-primary" style="justify-content:center; padding:1rem;">Ver propiedades</a>
+          <a href="favoritos.html" class="btn btn-ghost" style="justify-content:center; padding:0.9rem;">❤ Mis favoritos</a>
+          <button id="logout-button" class="logout-button">Cerrar sesión</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module" src="auth.js"></script>
+<script>
+// Password strength indicator
+document.getElementById('register-password')?.addEventListener('input', function() {
+  const v = this.value;
+  const fill = document.getElementById('strengthFill');
+  let strength = 0;
+  if (v.length >= 6) strength++;
+  if (v.length >= 10) strength++;
+  if (/[A-Z]/.test(v)) strength++;
+  if (/[0-9]/.test(v)) strength++;
+  if (/[^A-Za-z0-9]/.test(v)) strength++;
+  const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+  const widths = ['0%', '20%', '40%', '60%', '80%', '100%'];
+  fill.style.width = widths[strength];
+  fill.style.background = colors[strength] || '';
+});
+
+// Tabs
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => { f.classList.remove('active'); f.style.display = 'none'; });
+    tab.classList.add('active');
+    const target = document.getElementById(tab.dataset.target);
+    target.classList.add('active');
+    target.style.display = 'flex';
+    document.getElementById('login-message').textContent = '';
+    document.getElementById('register-message').textContent = '';
+  });
+});
+
+// Toggle password
+document.querySelectorAll('.toggle-password').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = btn.previousElementSibling || btn.parentElement.querySelector('input');
+    if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Ocultar'; }
+    else { input.type = 'password'; btn.textContent = 'Mostrar'; }
+  });
+});
+</script>
+</body>
+</html>
