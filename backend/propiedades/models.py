@@ -1,19 +1,34 @@
 from django.db import models
-from django.utils.timezone import now
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-class Propiedad(models.Model):
-    titulo = models.CharField(max_length=200)
-    precio = models.IntegerField(null=True, blank=True)
-    descripcion = models.TextField()
 
-    tipo = models.CharField(max_length=50, null=True, blank=True)
-    ciudad = models.CharField(max_length=100, null=True, blank=True)
-    ubicacion = models.CharField(max_length=200, null=True, blank=True)
+class PerfilUsuario(models.Model):
+    """
+    Extiende el modelo User de Django con datos adicionales.
+    Se crea automáticamente al registrar un usuario.
+    """
+    user      = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    telefono  = models.CharField(max_length=20, blank=True)
+    ciudad    = models.CharField(max_length=100, blank=True)
+    creado    = models.DateTimeField(auto_now_add=True)
 
-    area = models.FloatField(null=True, blank=True)
-    estado = models.CharField(max_length=20, default="disponible")
+    class Meta:
+        verbose_name = 'Perfil de usuario'
+        verbose_name_plural = 'Perfiles de usuario'
 
-    fecha = models.DateField(default=now)
+    def __str__(self):
+        return f'Perfil de {self.user.username}'
 
-    imagen = models.ImageField(upload_to='propiedades/', null=True, blank=True)
-    imagen_url = models.URLField(null=True, blank=True)
+
+# ── Signal: crea el perfil automáticamente al crear un User ──────────────────
+@receiver(post_save, sender=User)
+def crear_perfil(sender, instance, created, **kwargs):
+    if created:
+        PerfilUsuario.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def guardar_perfil(sender, instance, **kwargs):
+    if hasattr(instance, 'perfil'):
+        instance.perfil.save()

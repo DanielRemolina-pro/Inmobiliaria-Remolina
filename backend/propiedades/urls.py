@@ -1,11 +1,11 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import PropiedadViewSet, check_admin
-
-router = DefaultRouter()
-router.register(r'propiedades', PropiedadViewSet)
-
+from django.urls import path
+from . import views
+ 
 urlpatterns = [
-    path('check-admin/', check_admin),
-    path('api/', include(router.urls)),
+    path('csrf/',     views.csrf_token,      name='auth-csrf'),
+    path('registro/', views.registro,         name='auth-registro'),
+    path('login/',    views.iniciar_sesion,   name='auth-login'),
+    path('logout/',   views.cerrar_sesion,    name='auth-logout'),
+    path('me/',       views.mi_perfil,        name='auth-me'),
 ]
+ 

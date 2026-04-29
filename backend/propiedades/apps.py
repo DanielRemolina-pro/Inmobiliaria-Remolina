@@ -1,5 +1,7 @@
 from django.apps import AppConfig
 
 
-class PropiedadesConfig(AppConfig):
-    name = 'propiedades'
+class UsuariosConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'usuarios'
+    verbose_name = 'Usuarios'
