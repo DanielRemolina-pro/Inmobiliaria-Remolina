@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propiedades — Remolina Inmobiliaria</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- NAV -->
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <div class="nav-logo-text">
+        <span class="logo-main">Remolina</span>
+        <span class="logo-sub">Inmobiliaria</span>
+      </div>
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html" class="nav-link">Inicio</a></li>
+      <li><a href="propiedades.html" class="nav-link active">Propiedades</a></li>
+      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+      <li><a href="index.html#contacto" class="nav-link">Contacto</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="nav-user oculto" id="navUser">
+        <span class="nav-user-name" id="navUserName"></span>
+        <a href="favoritos.html" class="btn btn-ghost btn-sm">❤ Favoritos</a>
+        <a href="#" class="btn btn-ghost btn-sm" id="navLogout">Salir</a>
+      </div>
+      <div id="navLoginBtn">
+        <a href="login.html" class="btn btn-primary">Iniciar sesión</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main style="padding-top: var(--nav-h); min-height: 100vh; background: var(--obsidian);">
+
+  <!-- Page header -->
+  <div style="background: var(--obsidian-2); border-bottom: 1px solid var(--border-soft); padding: 3rem 0;">
+    <div class="container">
+      <span class="section-tag" style="display:block; margin-bottom:0.5rem;">Catálogo</span>
+      <h1 style="font-family:var(--ff-display); font-size:2.8rem; font-weight:300; color:var(--ivory);">
+        Todas las propiedades
+      </h1>
+      <p style="color:var(--ivory-dimmer); margin-top:0.5rem; font-size:0.95rem;">
+        <span id="totalCount">0</span> propiedades disponibles
+      </p>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+    <!-- FILTERS BAR (HU008, HU018, HU019) -->
+    <div class="filters-bar">
+      <div class="filters-top">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre, ubicación o tipo…">
+        </div>
+        <select class="filter-select" id="tipoFilter">
+          <option value="">Todos los tipos</option>
+          <option value="casa">Casa</option>
+          <option value="apartamento">Apartamento</option>
+          <option value="finca">Finca</option>
+          <option value="lote">Lote</option>
+          <option value="almacen">Almacén</option>
+        </select>
+        <select class="filter-select" id="ciudadFilter">
+          <option value="">Todas las ciudades</option>
+          <option value="ibague">Ibagué</option>
+          <option value="espinal">Espinal</option>
+          <option value="cajamarca">Cajamarca</option>
+          <option value="armenia">Armenia</option>
+        </select>
+        <select class="filter-select" id="ordenFilter">
+          <option value="">Ordenar</option>
+          <option value="precio-asc">Precio ↑</option>
+          <option value="precio-desc">Precio ↓</option>
+          <option value="area-desc">Área mayor</option>
+          <option value="reciente">Más reciente</option>
+        </select>
+      </div>
+      <div class="filters-range">
+        <span class="range-label">Precio mín:</span>
+        <input type="number" class="range-input" id="precioMin" placeholder="$ 0">
+        <span class="range-label">Precio máx:</span>
+        <input type="number" class="range-input" id="precioMax" placeholder="$ 5.000.000.000">
+        <button class="btn btn-ghost btn-sm" id="clearFilters">Limpiar filtros</button>
+      </div>
+    </div>
+
+    <!-- GRID (HU007) -->
+    <div class="propiedades-grid" id="propiedadesGrid"></div>
+
+    <!-- Empty state -->
+    <div class="empty-state oculto" id="emptyState">
+      <div class="empty-state-icon">🏠</div>
+      <h3>Sin resultados</h3>
+      <p>Intenta ajustar los filtros para encontrar la propiedad que buscas.</p>
+    </div>
+
+    <!-- PAGINATION (HU007 — 12/page) -->
+    <div class="pagination" id="pagination"></div>
+
+  </div>
+</main>
+
+<!-- FAB -->
+<div id="fab-group" class="floating-actions">
+  <div id="fab-items" class="fab-items oculto">
+    <div class="fab-item">
+      <span class="fab-label">Agendar cita</span>
+      <a class="fab-circle fab-calendar" href="https://calendly.com/danielremo3214/30min" target="_blank" rel="noopener">📅</a>
+    </div>
+    <div class="fab-item">
+      <span class="fab-label">WhatsApp</span>
+      <a class="fab-circle fab-whatsapp" href="https://wa.me/573054152644?text=¡Hola!" target="_blank" rel="noopener">💬</a>
+    </div>
+  </div>
+  <button id="fab-main" class="fab-main">
+    <span class="ico ico-plus">+</span>
+    <span class="ico ico-close">×</span>
+  </button>
+</div>
+
+<footer style="background: var(--obsidian-2); border-top:1px solid var(--border-soft); padding:2rem; text-align:center;">
+  <p style="font-size:0.8rem; color:var(--ivory-dimmer);">© 2026 Remolina Inmobiliaria</p>
+</footer>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCk0zvcRGwu8qLCOas-QDJnyxbs7OVyZMs",
+  authDomain: "inmobiliariaremolina-b6cbe.firebaseapp.com",
+  projectId: "inmobiliariaremolina-b6cbe",
+  storageBucket: "inmobiliariaremolina-b6cbe.firebasestorage.app",
+  messagingSenderId: "1067635512335",
+  appId: "1:1067635512335:web:e604b88877dc95f5123f7a"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user) => {
+  const navUser = document.getElementById('navUser');
+  const navLoginBtn = document.getElementById('navLoginBtn');
+  if (user) {
+    const snap = await getDoc(doc(db, 'usuarios', user.uid));
+    document.getElementById('navUserName').textContent = snap.exists() ? snap.data().nombre : user.email;
+    navUser.classList.remove('oculto');
+    navLoginBtn.classList.add('oculto');
+  }
+});
+document.getElementById('navLogout')?.addEventListener('click', async(e) => { e.preventDefault(); await signOut(auth); window.location.reload(); });
+
+let PAGE_SIZE = 12;
+let currentPage = 1;
+let filtered = [];
+let propiedades = [];
+
+// Read URL params
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlParams.get('tipo');
+
+async function cargarPropiedades() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/propiedades/");
+    const data = await res.json();
+    console.log("DATA API:", data); 
+
+    propiedades = data.map(p => ({
+      id: p.id,
+      titulo: p.titulo,
+      precio: p.precio,
+      descripcion: p.descripcion,
+      tipo: p.tipo, //temporal (modelo aún simple)
+      ciudad: p.ciudad,
+      ubicacion: p.ubicacion,
+      area: p.area,
+      estado: p.estado,
+      fecha: p.fecha,
+      img: p.imagen 
+        ? "http://127.0.0.1:8000" + p.imagen
+        : p.imagen_url 
+          ? p.imagen_url
+          : "videos/dani.png"
+    }));
+
+    applyFilters(); //esto renderiza todo
+  } catch (err) {
+    console.error("Error cargando propiedades:", err);
+  }
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const tipo = document.getElementById('tipoFilter').value;
+  const ciudad = document.getElementById('ciudadFilter').value;
+  const orden = document.getElementById('ordenFilter').value;
+  const min = parseFloat(document.getElementById('precioMin').value) || 0;
+  const max = parseFloat(document.getElementById('precioMax').value) || Infinity;
+
+  filtered = propiedades.filter(p => {
+    const matchText = !search || p.titulo.toLowerCase().includes(search) || p.ubicacion.toLowerCase().includes(search) || p.tipo.toLowerCase().includes(search);
+    const matchTipo = !tipo || p.tipo === tipo;
+    const matchCiudad = !ciudad || p.ciudad === ciudad;
+    const matchPrecio = (p.precio === null || p.precio === undefined) ? true : (p.precio >= min && p.precio <= max);
+    return matchText && matchTipo && matchCiudad && matchPrecio;
+  });
+
+  if (orden === 'precio-asc') filtered.sort((a,b) => a.precio - b.precio);
+  else if (orden === 'precio-desc') filtered.sort((a,b) => b.precio - a.precio);
+  else if (orden === 'area-desc') filtered.sort((a,b) => b.area - a.area);
+  else if (orden === 'reciente') filtered.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  currentPage = 1;
+  render();
+}
+
+function formatPrecio(p) {
+  if (p === null || p === undefined) return 'Consultar precio';
+  return '$' + p.toLocaleString('es-CO');
+}
+
+function formatArea(a) {
+  return a >= 10000 ? (a/10000).toFixed(1) + ' ha' : a + ' m²';
+}
+
+function getBadgeClass(estado) {
+  return { disponible:'disponible', vendido:'vendido', reservado:'reservado' }[estado] || 'disponible';
+}
+
+function render() {
+  const grid = document.getElementById('propiedadesGrid');
+  const empty = document.getElementById('emptyState');
+  const total = filtered.length;
+  document.getElementById('totalCount').textContent = total;
+
+  if (total === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('oculto');
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  empty.classList.add('oculto');
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = filtered.slice(start, start + PAGE_SIZE);
+  const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
+
+  grid.innerHTML = page.map(p => `
+    <div class="propiedad-card reveal visible">
+      <div class="card-img-wrap">
+        <img src="${p.img}" alt="${p.titulo}" loading="lazy">
+        <span class="card-badge ${getBadgeClass(p.estado)}">${p.estado.charAt(0).toUpperCase()+p.estado.slice(1)}</span>
+        <button class="card-fav ${favs.includes(String(p.id)) ? 'active' : ''}" data-id="${p.id}">${favs.includes(String(p.id)) ? '♥' : '♡'}</button>
+      </div>
+      <div class="card-body">
+        <div class="card-type">
+          ${p.tipo.charAt(0).toUpperCase()+p.tipo.slice(1)} • ${p.ciudad}
+        </div>
+        <h3 class="card-title">${p.titulo}</h3>
+        <div class="card-location">📍 ${p.ciudad}, Tolima</div>
+        <div class="card-price">${formatPrecio(p.precio)}</div>
+        <div class="card-features">
+          <span>Área: ${formatArea(p.area)} | ${p.ubicacion}</span>
+        </div>
+        <div class="card-actions">
+          <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
+          <a href="index.html#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Pagination
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+  pg.innerHTML = Array.from({length: totalPages}, (_, i) => i+1).map(n =>
+    `<button class="page-btn ${n === currentPage ? 'active' : ''}" data-page="${n}">${n}</button>`
+  ).join('');
+  pg.querySelectorAll('.page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPage = parseInt(btn.dataset.page);
+      render();
+      window.scrollTo({top:300, behavior:'smooth'});
+    });
+  });
+
+  // Fav buttons
+  grid.querySelectorAll('.card-fav').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
+      const idx = favs.indexOf(id);
+      if (idx === -1) { favs.push(id); btn.textContent = '♥'; btn.classList.add('active'); showToast('❤ Guardado en favoritos', 'success'); }
+      else { favs.splice(idx,1); btn.textContent = '♡'; btn.classList.remove('active'); showToast('Eliminado de favoritos'); }
+      localStorage.setItem('favoritos', JSON.stringify(favs));
+    });
+  });
+}
+
+// Filter listeners
+['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', applyFilters);
+  document.getElementById(id)?.addEventListener('change', applyFilters);
+});
+document.getElementById('clearFilters').addEventListener('click', () => {
+  ['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  applyFilters();
+});
+
+// FAB
+const fabMain = document.getElementById('fab-main');
+const fabItems = document.getElementById('fab-items');
+fabMain.addEventListener('click', () => { fabItems.classList.toggle('oculto'); fabMain.classList.toggle('open'); });
+document.addEventListener('click', (e) => {
+  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
+    fabItems.classList.add('oculto'); fabMain.classList.remove('open');
+  }
+});
+
+// Hamburger
+document.getElementById('navHamburger').addEventListener('click', () => document.getElementById('navMenu').classList.toggle('open'));
+
+function showToast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+cargarPropiedades();
+</script>
+</body>
+</html>

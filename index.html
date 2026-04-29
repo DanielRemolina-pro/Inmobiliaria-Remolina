@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remolina Inmobiliaria — Encuentra tu hogar ideal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <div class="nav-logo-text">
+        <span class="logo-main">Remolina</span>
+        <span class="logo-sub">Inmobiliaria</span>
+      </div>
+    </a>
+
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html" class="nav-link active">Inicio</a></li>
+      <li><a href="propiedades.html" class="nav-link">Propiedades</a></li>
+      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+      <li><a href="#contacto" class="nav-link">Contacto</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <div class="nav-user oculto" id="navUser">
+        <span class="nav-user-name" id="navUserName"></span>
+        <a href="favoritos.html" class="btn btn-ghost btn-sm">❤ Favoritos</a>
+        <a href="login.html" class="btn btn-ghost btn-sm" id="navLogout">Salir</a>
+      </div>
+      <div id="navLoginBtn">
+        <a href="login.html" class="btn btn-primary">Iniciar sesión</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <div class="hero-video-wrap">
+    <video autoplay muted loop playsinline>
+      <source src="videos/hero.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <span class="hero-eyebrow">Propiedades exclusivas · Ibagué, Colombia</span>
+    <h1 class="hero-title">
+      Encuentra tu<br><em>hogar ideal</em>
+    </h1>
+    <p class="hero-sub">
+      Propiedades exclusivas con asesoría personalizada. Más de 8 años conectando familias con espacios extraordinarios.
+    </p>
+    <div class="hero-actions">
+      <a href="propiedades.html" class="btn btn-primary btn-lg">Ver propiedades</a>
+      <a href="#contacto" class="btn btn-ghost btn-lg">Contáctanos</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stats-inner">
+      <div class="stat-item">
+        <div class="stat-number" id="statProps">120</div>
+        <div class="stat-label">Propiedades</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="statClients">340</div>
+        <div class="stat-label">Clientes satisfechos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">8 años</div>
+        <div class="stat-label">De experiencia</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">98%</div>
+        <div class="stat-label">Tasa de satisfacción</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROPIEDADES DESTACADAS ═══ -->
+<section id="propiedades" class="section" style="background: var(--obsidian-2);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">Portafolio</span>
+      <h2 class="section-title">Propiedades destacadas</h2>
+      <div class="section-rule"></div>
+      <p class="section-sub">
+        Selección exclusiva con alto valor, diseño moderno y ubicación estratégica.
+      </p>
+    </div>
+
+    <div class="propiedades-grid">
+
+      <!-- CARD 1 — Finca Campestre (id 101) -->
+      <div class="propiedad-card reveal">
+        <div class="card-img-wrap">
+          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_750122-MCO107014467213_022026-F.webp" alt="Finca Campestre" loading="lazy">
+          <span class="card-badge disponible">Disponible</span>
+          <button class="card-fav" data-id="101" title="Guardar en favoritos">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-type">Finca</div>
+          <h3 class="card-title">Finca Campestre</h3>
+          <div class="card-location">📍 Ibagué, Tolima</div>
+          <div class="card-price">Consultar precio</div>
+          <div class="card-features">
+            <span>3 🛏</span>
+            <span>2 🛁</span>
+            <span>5.2 ha</span>
+            <span>Agropecuaria 🌳</span>
+          </div>
+          <div class="card-actions">
+            <a href="detalle.html?id=101" class="btn btn-sm btn-primary">Ver detalle</a>
+            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2 — Apartamento Moderno (id 102) -->
+      <div class="propiedad-card reveal" style="transition-delay:0.1s">
+        <div class="card-img-wrap">
+          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_864383-MCO108035243563_032026-F.webp" alt="Apartamento Moderno" loading="lazy">
+          <span class="card-badge disponible">Disponible</span>
+          <button class="card-fav" data-id="102" title="Guardar en favoritos">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-type">Apartamento</div>
+          <h3 class="card-title">Apartamento Moderno</h3>
+          <div class="card-location">📍 Ibagué, Tolima</div>
+          <div class="card-price">Consultar precio</div>
+          <div class="card-features">
+            <span>3 🛏</span>
+            <span>2 🛁</span>
+            <span>120 m²</span>
+            <span>Piso 5</span>
+          </div>
+          <div class="card-actions">
+            <a href="detalle.html?id=102" class="btn btn-sm btn-primary">Ver detalle</a>
+            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3 — Lote Estratégico (id 103) -->
+      <div class="propiedad-card reveal" style="transition-delay:0.2s">
+        <div class="card-img-wrap">
+          <img src="https://cdn4.fincaraiz.com.co/repo/img/th.outside1200x1200.67e5c20a87b05_infocdn__tpou3lejq69koiknvruqsfrlrmiuoco2xo5ozkcwjpg.jpg" alt="Lote Estratégico" loading="lazy">
+          <span class="card-badge disponible">Disponible</span>
+          <button class="card-fav" data-id="103" title="Guardar en favoritos">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-type">Lote</div>
+          <h3 class="card-title">Lote Estratégico</h3>
+          <div class="card-location">📍 Ibagué, Tolima</div>
+          <div class="card-price">Consultar precio</div>
+          <div class="card-features">
+            <span>1.800 m²</span>
+            <span>Urbanizable 🏗</span>
+          </div>
+          <div class="card-actions">
+            <a href="detalle.html?id=103" class="btn btn-sm btn-primary">Ver detalle</a>
+            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4 — Bodega Industrial (id 104) -->
+      <div class="propiedad-card reveal" style="transition-delay:0.3s">
+        <div class="card-img-wrap">
+          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_972911-MCO95528180406_102025-F.webp" alt="Bodega Industrial" loading="lazy">
+          <span class="card-badge disponible">Disponible</span>
+          <button class="card-fav" data-id="104" title="Guardar en favoritos">♡</button>
+        </div>
+        <div class="card-body">
+          <div class="card-type">Almacén · Bodega</div>
+          <h3 class="card-title">Bodega Industrial</h3>
+          <div class="card-location">📍 Zona industrial, Ibagué</div>
+          <div class="card-price">Consultar precio</div>
+          <div class="card-features">
+            <span>600 m²</span>
+            <span>Cargador ⚡</span>
+            <span>Camiones 🚛</span>
+          </div>
+          <div class="card-actions">
+            <a href="detalle.html?id=104" class="btn btn-sm btn-primary">Ver detalle</a>
+            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center; margin-top:3rem;">
+      <a href="propiedades.html" class="btn btn-primary btn-lg">
+        Ver todas las propiedades →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHY US ═══ -->
+<section class="section" style="background: var(--obsidian);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">Por qué elegirnos</span>
+      <h2 class="section-title">Comprometidos con tu <em style="font-family: var(--ff-display); color:var(--gold); font-style:italic;">excelencia</em></h2>
+      <div class="section-rule"></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:1.5rem;">
+
+      <div class="stat-card reveal" style="transition-delay:0s">
+        <div style="font-size:2rem; margin-bottom:1rem;">🏆</div>
+        <h3 style="font-family:var(--ff-display); font-size:1.3rem; color:var(--ivory); margin-bottom:0.5rem;">Portafolio exclusivo</h3>
+        <p style="font-size:0.875rem; color:var(--ivory-dimmer); line-height:1.7;">Más de 120 propiedades cuidadosamente seleccionadas en las mejores ubicaciones.</p>
+      </div>
+
+      <div class="stat-card reveal" style="transition-delay:0.1s">
+        <div style="font-size:2rem; margin-bottom:1rem;">🤝</div>
+        <h3 style="font-family:var(--ff-display); font-size:1.3rem; color:var(--ivory); margin-bottom:0.5rem;">Asesoría personalizada</h3>
+        <p style="font-size:0.875rem; color:var(--ivory-dimmer); line-height:1.7;">Equipo dedicado que te acompaña en cada paso del proceso de compra o arriendo.</p>
+      </div>
+
+      <div class="stat-card reveal" style="transition-delay:0.2s">
+        <div style="font-size:2rem; margin-bottom:1rem;">📅</div>
+        <h3 style="font-family:var(--ff-display); font-size:1.3rem; color:var(--ivory); margin-bottom:0.5rem;">Visitas flexibles</h3>
+        <p style="font-size:0.875rem; color:var(--ivory-dimmer); line-height:1.7;">Agenda visitas en los horarios que más te convengan. Confirmación inmediata.</p>
+      </div>
+
+      <div class="stat-card reveal" style="transition-delay:0.3s">
+        <div style="font-size:2rem; margin-bottom:1rem;">🔒</div>
+        <h3 style="font-family:var(--ff-display); font-size:1.3rem; color:var(--ivory); margin-bottom:0.5rem;">Procesos seguros</h3>
+        <p style="font-size:0.875rem; color:var(--ivory-dimmer); line-height:1.7;">Documentación verificada y transacciones respaldadas con total transparencia.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACTO ═══ -->
+<section id="contacto" class="section" style="background: var(--obsidian-2);">
+  <div class="container contacto-grid">
+    <div class="contacto-info reveal">
+      <span class="section-tag" style="text-align:left; display:block; margin-bottom:0.75rem;">Contáctanos</span>
+      <h2 style="font-family:var(--ff-display); font-size:2.8rem; font-weight:300; color:var(--ivory); margin-bottom:1rem; line-height:1.1;">
+        Estamos aquí<br>para ayudarte
+      </h2>
+      <p style="color:var(--ivory-dimmer); margin-bottom:2.5rem; line-height:1.8;">
+        Nuestro equipo está disponible para resolver tus dudas y guiarte en la búsqueda de tu propiedad ideal.
+      </p>
+
+      <div class="contact-item">
+        <div class="contact-item-icon">📞</div>
+        <div>
+          <strong>Teléfono</strong>
+          <span><a href="tel:+573054152644" style="color:var(--gold);">+57 305 415 2644</a></span>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="contact-item-icon">📧</div>
+        <div>
+          <strong>Email</strong>
+          <span><a href="mailto:danielremo3214@gmail.com" style="color:var(--gold);">danielremo3214@gmail.com</a></span>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="contact-item-icon">📍</div>
+        <div>
+          <strong>Ubicación</strong>
+          <span style="color:var(--ivory-dim);">Ibagué, Tolima, Colombia</span>
+        </div>
+      </div>
+    </div>
+
+    <form class="contacto-form reveal" id="contactForm" style="transition-delay:0.15s">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" placeholder="Tu nombre" required>
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" placeholder="correo@ejemplo.com" required>
+      </div>
+      <div class="form-group">
+        <label>Teléfono (opcional)</label>
+        <input type="tel" placeholder="+57 300 000 0000">
+      </div>
+      <div class="form-group">
+        <label>Mensaje</label>
+        <textarea placeholder="¿En qué podemos ayudarte?" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary w-full" style="width:100%; padding:1rem; font-size:0.95rem;">
+        Enviar mensaje
+      </button>
+      <div class="form-success" id="formSuccess">
+        ✅ ¡Mensaje enviado! Nos pondremos en contacto contigo pronto.
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="logo-main text-gold">Remolina</span>
+        <span class="logo-sub" style="color:var(--ivory-dimmer); letter-spacing:0.2em; font-size:0.65rem; text-transform:uppercase;">Inmobiliaria</span>
+        <p>Conectando familias con propiedades extraordinarias en el Tolima desde 2016.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegación</h4>
+        <a href="index.html">Inicio</a>
+        <a href="propiedades.html">Propiedades</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="#contacto">Contacto</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tipos de propiedad</h4>
+        <a href="propiedades.html?tipo=casa">Casas</a>
+        <a href="propiedades.html?tipo=apartamento">Apartamentos</a>
+        <a href="propiedades.html?tipo=finca">Fincas</a>
+        <a href="propiedades.html?tipo=lote">Lotes</a>
+        <a href="propiedades.html?tipo=almacen">Almacenes</a>
+      </div>
+      <div class="footer-col">
+        <h4>Cuenta</h4>
+        <a href="login.html">Iniciar sesión</a>
+        <a href="login.html#registro">Registrarse</a>
+        <a href="favoritos.html">Mis favoritos</a>
+        <a href="citas.html">Mis citas</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Remolina Inmobiliaria. Todos los derechos reservados.</p>
+      <p style="color:var(--ivory-dimmer);">Ibagué, Tolima · Colombia</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ FAB ═══ -->
+<div id="fab-group" class="floating-actions">
+  <div id="fab-items" class="fab-items oculto">
+    <div class="fab-item">
+      <span class="fab-label">Agendar cita</span>
+      <a id="fab-calendar" class="fab-circle fab-calendar" href="https://calendly.com/danielremo3214/30min" target="_blank" rel="noopener" title="Agendar cita">📅</a>
+    </div>
+    <div class="fab-item">
+      <span class="fab-label">WhatsApp</span>
+      <a id="fab-whatsapp" class="fab-circle fab-whatsapp" href="https://wa.me/573054152644?text=¡Hola!%20Estoy%20interesado%20en%20una%20propiedad" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+    </div>
+  </div>
+  <button id="fab-main" class="fab-main" aria-label="Abrir opciones">
+    <span class="ico ico-plus">+</span>
+    <span class="ico ico-close">×</span>
+  </button>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCk0zvcRGwu8qLCOas-QDJnyxbs7OVyZMs",
+  authDomain: "inmobiliariaremolina-b6cbe.firebaseapp.com",
+  projectId: "inmobiliariaremolina-b6cbe",
+  storageBucket: "inmobiliariaremolina-b6cbe.firebasestorage.app",
+  messagingSenderId: "1067635512335",
+  appId: "1:1067635512335:web:e604b88877dc95f5123f7a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── Auth state
+onAuthStateChanged(auth, async (user) => {
+  const navUser = document.getElementById('navUser');
+  const navLoginBtn = document.getElementById('navLoginBtn');
+  const navUserName = document.getElementById('navUserName');
+  if (user) {
+    const snap = await getDoc(doc(db, 'usuarios', user.uid));
+    navUserName.textContent = snap.exists() ? snap.data().nombre : user.email;
+    navUser.classList.remove('oculto');
+    navLoginBtn.classList.add('oculto');
+  } else {
+    navUser.classList.add('oculto');
+    navLoginBtn.classList.remove('oculto');
+  }
+});
+
+document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await signOut(auth);
+  window.location.reload();
+});
+
+// ── Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 30);
+});
+navbar.classList.add('scrolled');
+
+// ── Hamburger
+document.getElementById('navHamburger').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+
+// ── FAB
+const fabMain = document.getElementById('fab-main');
+const fabItems = document.getElementById('fab-items');
+fabMain.addEventListener('click', () => {
+  fabItems.classList.toggle('oculto');
+  fabMain.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
+    fabItems.classList.add('oculto');
+    fabMain.classList.remove('open');
+  }
+});
+
+// ── Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Favorites
+document.querySelectorAll('.card-fav').forEach(btn => {
+  const id = btn.dataset.id;
+  const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
+  if (favs.includes(id)) { btn.textContent = '♥'; btn.classList.add('active'); }
+  btn.addEventListener('click', () => {
+    const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
+    const idx = favs.indexOf(id);
+    if (idx === -1) {
+      favs.push(id);
+      btn.textContent = '♥';
+      btn.classList.add('active');
+      showToast('❤ Guardado en favoritos', 'success');
+    } else {
+      favs.splice(idx, 1);
+      btn.textContent = '♡';
+      btn.classList.remove('active');
+      showToast('Eliminado de favoritos');
+    }
+    localStorage.setItem('favoritos', JSON.stringify(favs));
+  });
+});
+
+// ── Contact form
+document.getElementById('contactForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  document.getElementById('formSuccess').classList.add('show');
+  e.target.reset();
+  setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
+});
+
+// ── Toast
+function showToast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ── Counter animation
+function animateCount(el, target) {
+  let n = 0;
+  const step = Math.ceil(target / 60);
+  const t = setInterval(() => {
+    n = Math.min(n + step, target);
+    el.textContent = n + (el.dataset.suffix || '');
+    if (n >= target) clearInterval(t);
+  }, 20);
+}
+const statObs = new IntersectionObserver(([e]) => {
+  if (e.isIntersecting) {
+    animateCount(document.getElementById('statProps'), 120);
+    animateCount(document.getElementById('statClients'), 340);
+    statObs.disconnect();
+  }
+});
+statObs.observe(document.getElementById('statProps'));
+
+// Video fallback
+document.querySelector('.hero-video-wrap video')?.addEventListener('error', () => {
+  document.querySelector('.hero-video-wrap video').style.display = 'none';
+});
+</script>
+
+<script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+</body>
+</html>

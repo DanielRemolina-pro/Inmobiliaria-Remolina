@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros — Remolina Inmobiliaria</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+
+    /* ── Hero nosotros ── */
+    .nosotros-hero {
+      position: relative;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      padding-top: var(--nav-h);
+      overflow: hidden;
+    }
+
+    .nosotros-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=85');
+      background-size: cover;
+      background-position: center 40%;
+      filter: brightness(0.28);
+    }
+
+    .nosotros-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10,10,15,0.7) 0%, transparent 60%),
+                  linear-gradient(to top, var(--obsidian) 0%, transparent 50%);
+    }
+
+    .nosotros-hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 6rem 2rem 5rem;
+    }
+
+    /* ── Historia timeline ── */
+    .timeline {
+      position: relative;
+      padding-left: 2.5rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--gold), rgba(201,168,76,0.15));
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 3rem;
+    }
+
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-dot {
+      position: absolute;
+      left: -2.9rem;
+      top: 0.35rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 3px solid var(--obsidian-2);
+      box-shadow: 0 0 12px rgba(201,168,76,0.4);
+    }
+
+    .timeline-year {
+      font-family: var(--ff-mono);
+      font-size: 0.75rem;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.4rem;
+    }
+
+    .timeline-title {
+      font-family: var(--ff-display);
+      font-size: 1.2rem;
+      color: var(--ivory);
+      margin-bottom: 0.4rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.875rem;
+      color: var(--ivory-dimmer);
+      line-height: 1.75;
+    }
+
+    /* ── Valores cards ── */
+    .valor-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .valor-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .valor-card:hover {
+      border-color: var(--border);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .valor-card:hover::before { opacity: 1; }
+
+    .valor-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+
+    .valor-title {
+      font-family: var(--ff-display);
+      font-size: 1.35rem;
+      color: var(--ivory);
+      margin-bottom: 0.6rem;
+    }
+
+    .valor-text {
+      font-size: 0.875rem;
+      color: var(--ivory-dimmer);
+      line-height: 1.8;
+    }
+
+    /* ── Equipo cards ── */
+    .equipo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+
+    .equipo-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .equipo-card:hover {
+      border-color: var(--border);
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .equipo-img-wrap {
+      height: 280px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .equipo-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .equipo-card:hover .equipo-img-wrap img {
+      transform: scale(1.05);
+    }
+
+    .equipo-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,10,15,0.7) 0%, transparent 50%);
+    }
+
+    .equipo-body {
+      padding: 1.5rem;
+    }
+
+    .equipo-name {
+      font-family: var(--ff-display);
+      font-size: 1.3rem;
+      color: var(--ivory);
+      margin-bottom: 0.2rem;
+    }
+
+    .equipo-role {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .equipo-bio {
+      font-size: 0.85rem;
+      color: var(--ivory-dimmer);
+      line-height: 1.7;
+    }
+
+    /* ── Cifras strip ── */
+    .cifras-strip {
+      background: linear-gradient(135deg, var(--obsidian-3) 0%, var(--obsidian-4) 100%);
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 4rem 0;
+    }
+
+    .cifras-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .cifra-number {
+      font-family: var(--ff-display);
+      font-size: 3rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .cifra-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ivory-dimmer);
+    }
+
+    /* ── Quote banner ── */
+    .quote-banner {
+      background: var(--obsidian-2);
+      border-left: 3px solid var(--gold);
+      padding: 2.5rem 2.5rem 2.5rem 3rem;
+      border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+      position: relative;
+    }
+
+    .quote-banner blockquote {
+      font-family: var(--ff-display);
+      font-size: 1.6rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--ivory);
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    .quote-banner cite {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-style: normal;
+    }
+
+    .quote-mark {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-family: var(--ff-display);
+      font-size: 6rem;
+      color: rgba(201,168,76,0.08);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ── CTA final ── */
+    .cta-nosotros {
+      background: linear-gradient(135deg, var(--obsidian-3) 0%, rgba(201,168,76,0.05) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 4rem;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .nosotros-hero-content { padding: 4rem 1.5rem 3rem; }
+      .quote-banner { padding: 2rem 1.5rem 2rem 2rem; }
+      .quote-banner blockquote { font-size: 1.2rem; }
+      .cta-nosotros { padding: 2.5rem 1.5rem; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <div class="nav-logo-text">
+        <span class="logo-main">Remolina</span>
+        <span class="logo-sub">Inmobiliaria</span>
+      </div>
+    </a>
+
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html" class="nav-link">Inicio</a></li>
+      <li><a href="propiedades.html" class="nav-link">Propiedades</a></li>
+      <li><a href="nosotros.html" class="nav-link active">Nosotros</a></li>
+      <li><a href="index.html#contacto" class="nav-link">Contacto</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <div class="nav-user oculto" id="navUser">
+        <span class="nav-user-name" id="navUserName"></span>
+        <a href="favoritos.html" class="btn btn-ghost btn-sm">❤ Favoritos</a>
+        <a href="#" class="btn btn-ghost btn-sm" id="navLogout">Salir</a>
+      </div>
+      <div id="navLoginBtn">
+        <a href="login.html" class="btn btn-primary">Iniciar sesión</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="nosotros-hero">
+  <div class="nosotros-hero-bg"></div>
+  <div class="nosotros-hero-overlay"></div>
+
+  <div class="nosotros-hero-content">
+    <span class="hero-eyebrow">Sobre nosotros · Desde 2016</span>
+    <h1 class="hero-title" style="max-width: 700px;">
+      Conectamos personas<br>con <em>espacios que inspiran</em>
+    </h1>
+    <p class="hero-sub" style="max-width: 560px;">
+      Somos una inmobiliaria tolimense comprometida con hacer de cada transacción una experiencia transparente, cercana y memorable.
+    </p>
+    <div class="hero-actions">
+      <a href="propiedades.html" class="btn btn-primary btn-lg">Ver propiedades</a>
+      <a href="index.html#contacto" class="btn btn-ghost btn-lg">Contáctanos</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CIFRAS ═══ -->
+<div class="cifras-strip">
+  <div class="container">
+    <div class="cifras-grid">
+      <div class="reveal">
+        <div class="cifra-number">+120</div>
+        <div class="cifra-label">Propiedades</div>
+      </div>
+      <div class="reveal" style="transition-delay:0.1s">
+        <div class="cifra-number">+340</div>
+        <div class="cifra-label">Clientes satisfechos</div>
+      </div>
+      <div class="reveal" style="transition-delay:0.2s">
+        <div class="cifra-number">8</div>
+        <div class="cifra-label">Años de experiencia</div>
+      </div>
+      <div class="reveal" style="transition-delay:0.3s">
+        <div class="cifra-number">98%</div>
+        <div class="cifra-label">Tasa de satisfacción</div>
+      </div>
+      <div class="reveal" style="transition-delay:0.4s">
+        <div class="cifra-number">5</div>
+        <div class="cifra-label">Municipios atendidos</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NUESTRA HISTORIA ═══ -->
+<section class="section" style="background: var(--obsidian);">
+  <div class="container">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start;">
+
+      <!-- Texto -->
+      <div class="reveal">
+        <div class="section-header" style="text-align: left; margin-bottom: 2.5rem;">
+          <span class="section-tag">Nuestra historia</span>
+          <h2 class="section-title" style="text-align:left;">
+            Raíces tolimenses,<br><em>visión de futuro</em>
+          </h2>
+          <div class="section-rule" style="margin-left:0;"></div>
+        </div>
+
+        <p style="color: var(--ivory-dim); line-height: 1.9; margin-bottom: 1.5rem; font-size: 0.95rem;">
+          Remolina Inmobiliaria nació en 2016 con una convicción simple: el proceso de encontrar un hogar debe ser tan especial como el hogar mismo. Lo que comenzó como una apuesta personal de Daniel Remolina se convirtió en el referente inmobiliario de Ibagué y el Tolima.
+        </p>
+
+        <p style="color: var(--ivory-dimmer); line-height: 1.9; margin-bottom: 2.5rem; font-size: 0.875rem;">
+          Año a año hemos crecido ampliando nuestro portafolio, sumando aliados estratégicos y adoptando tecnología que facilita la búsqueda de propiedades para nuestros clientes. Hoy somos un equipo apasionado por el territorio tolimense y comprometido con resultados reales.
+        </p>
+
+        <div class="quote-banner reveal">
+          <span class="quote-mark">"</span>
+          <blockquote>
+            "Cada propiedad tiene una historia. Nuestra misión es conectarla con la familia que la merece."
+          </blockquote>
+          <cite>— Daniel Remolina, Fundador</cite>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="reveal" style="transition-delay:0.15s; padding-top:0.5rem;">
+        <div class="timeline">
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2016</div>
+            <div class="timeline-title">Fundación</div>
+            <p class="timeline-desc">Daniel Remolina funda la inmobiliaria con un enfoque en propiedades residenciales de alto valor en Ibagué.</p>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2018</div>
+            <div class="timeline-title">Expansión regional</div>
+            <p class="timeline-desc">Ampliamos cobertura a Cajamarca, El Espinal y Armenia, atendiendo clientes de todo el Tolima y el Eje Cafetero.</p>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2021</div>
+            <div class="timeline-title">Plataforma digital</div>
+            <p class="timeline-desc">Lanzamos nuestro portal web con búsqueda avanzada, galería de propiedades y agendamiento de visitas en línea.</p>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2023</div>
+            <div class="timeline-title">+300 clientes satisfechos</div>
+            <p class="timeline-desc">Superamos los 300 clientes atendidos y consolidamos alianzas con constructoras y desarrolladores locales.</p>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">2026</div>
+            <div class="timeline-title">Hoy</div>
+            <p class="timeline-desc">Más de 120 propiedades en portafolio, plataforma renovada y crecimiento sostenido en el mercado tolimense.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ VALORES ═══ -->
+<section class="section" style="background: var(--obsidian-2);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">Nuestros valores</span>
+      <h2 class="section-title">Lo que nos <em>define</em></h2>
+      <div class="section-rule"></div>
+      <p class="section-sub">
+        Principios que guían cada asesoría, cada transacción y cada relación con nuestros clientes.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
+
+      <div class="valor-card reveal" style="transition-delay:0s">
+        <span class="valor-icon">🤝</span>
+        <h3 class="valor-title">Confianza</h3>
+        <p class="valor-text">Construimos relaciones a largo plazo basadas en la honestidad absoluta. Nunca ocultamos información que pueda afectar tu decisión.</p>
+      </div>
+
+      <div class="valor-card reveal" style="transition-delay:0.1s">
+        <span class="valor-icon">🔍</span>
+        <h3 class="valor-title">Transparencia</h3>
+        <p class="valor-text">Documentación clara, precios justos y procesos sin letra pequeña. Sabemos que una transacción inmobiliaria es una de las más importantes de tu vida.</p>
+      </div>
+
+      <div class="valor-card reveal" style="transition-delay:0.2s">
+        <span class="valor-icon">🏆</span>
+        <h3 class="valor-title">Excelencia</h3>
+        <p class="valor-text">Cuestionamos constantemente cómo mejorar. Seleccionamos solo las propiedades que cumplen nuestros altos estándares de calidad y ubicación.</p>
+      </div>
+
+      <div class="valor-card reveal" style="transition-delay:0.3s">
+        <span class="valor-icon">💡</span>
+        <h3 class="valor-title">Innovación</h3>
+        <p class="valor-text">Adoptamos tecnología para simplificar tu búsqueda: búsqueda inteligente, visitas virtuales y gestión de citas en línea desde cualquier lugar.</p>
+      </div>
+
+      <div class="valor-card reveal" style="transition-delay:0.4s">
+        <span class="valor-icon">🌿</span>
+        <h3 class="valor-title">Comunidad</h3>
+        <p class="valor-text">Amamos el Tolima. Trabajamos para impulsar el desarrollo regional y que más familias puedan acceder a propiedades de calidad en nuestra tierra.</p>
+      </div>
+
+      <div class="valor-card reveal" style="transition-delay:0.5s">
+        <span class="valor-icon">⚡</span>
+        <h3 class="valor-title">Agilidad</h3>
+        <p class="valor-text">Respondemos rápido. El mercado inmobiliario se mueve veloz y estar disponibles cuando nos necesites marca la diferencia.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ EQUIPO ═══ -->
+<section class="section" style="background: var(--obsidian);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">El equipo</span>
+      <h2 class="section-title">Las personas detrás de <em>Remolina</em></h2>
+      <div class="section-rule"></div>
+      <p class="section-sub">
+        Profesionales apasionados por el sector inmobiliario y comprometidos con tu satisfacción.
+      </p>
+    </div>
+
+    <div class="equipo-grid">
+
+      <div class="equipo-card reveal" style="transition-delay:0s">
+        <div class="equipo-img-wrap">
+          <img src="videos/dani.png" alt="Daniel Remolina">
+          <div class="equipo-img-overlay"></div>
+        </div>
+        <div class="equipo-body">
+          <div class="equipo-name">Daniel Remolina</div>
+          <div class="equipo-role">Fundador & Director General</div>
+          <p class="equipo-bio">Más de 8 años en el sector inmobiliario tolimense. Especialista en propiedades de alta valorización y negociación estratégica.</p>
+        </div>
+      </div>
+
+      <div class="equipo-card reveal" style="transition-delay:0.12s">
+        <div class="equipo-img-wrap">
+          <img src="videos/brahiyan.jpeg" alt="Brahiyan Sanchez">
+          <div class="equipo-img-overlay"></div>
+        </div>
+        <div class="equipo-body">
+          <div class="equipo-name">Brahiyan Sanchez</div>
+          <div class="equipo-role">Asesor Comercial Senior</div>
+          <p class="equipo-bio">Especializado en propiedades residenciales y acompañamiento jurídico. Su trato cercano convierte clientes en amigos.</p>
+        </div>
+      </div>
+
+      <div class="equipo-card reveal" style="transition-delay:0.24s">
+        <div class="equipo-img-wrap">
+          <img src="videos/kevin.png" alt="Kevin Guerrero">
+          <div class="equipo-img-overlay"></div>
+        </div>
+        <div class="equipo-body">
+          <div class="equipo-name">Kevin Guerrero</div>
+          <div class="equipo-role">Especialista en Fincas y Lotes</div>
+          <p class="equipo-bio">Profundo conocimiento del territorio rural tolimense. Asesor clave para proyectos agropecuarios e inversiones en tierra.</p>
+        </div>
+      </div>
+
+      <div class="equipo-card reveal" style="transition-delay:0.36s">
+        <div class="equipo-img-wrap">
+          <img src="videos/sebas.png" alt="Sebastian Pedraza">
+          <div class="equipo-img-overlay"></div>
+        </div>
+        <div class="equipo-body">
+          <div class="equipo-name">Sebastian Pedraza</div>
+          <div class="equipo-role">Coordinador Administrativo</div>
+          <p class="equipo-bio">Garantiza que cada proceso documental y cada cita fluya sin contratiempos. El motor silencioso del equipo.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TESTIMONIO ═══ -->
+<section class="section" style="background: var(--obsidian-2);">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">Testimonios</span>
+      <h2 class="section-title">Lo que dicen nuestros <em>clientes</em></h2>
+      <div class="section-rule"></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+
+      <div class="stat-card reveal" style="transition-delay:0s; position:relative;">
+        <div style="font-size:1.8rem; color:var(--gold); margin-bottom:1rem; font-family:var(--ff-display);">"</div>
+        <p style="font-family:var(--ff-display); font-size:1.1rem; font-style:italic; color:var(--ivory); line-height:1.65; margin-bottom:1.25rem;">
+          Encontré la casa de mis sueños gracias a la Inmobiliaria Remolina. El proceso fue impecable y el sr Remolina siempre estuvo disponible.
+        </p>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--ff-display); font-size:1.1rem; color:var(--gold);">K</div>
+          <div>
+            <div style="font-size:0.85rem; color:var(--ivory); font-weight:500;">Kevin Guerrero</div>
+            <div style="font-size:0.75rem; color:var(--gold);">Ludopata Empedernido</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card reveal" style="transition-delay:0.12s; position:relative;">
+        <div style="font-size:1.8rem; color:var(--gold); margin-bottom:1rem; font-family:var(--ff-display);">"</div>
+        <p style="font-family:var(--ff-display); font-size:1.1rem; font-style:italic; color:var(--ivory); line-height:1.65; margin-bottom:1.25rem;">
+          Vendimos nuestra finca en menos de un mes. La gestión y la visibilidad que le dieron fue extraordinaria.
+        </p>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--ff-display); font-size:1.1rem; color:var(--gold);">M</div>
+          <div>
+            <div style="font-size:0.85rem; color:var(--ivory); font-weight:500;">Brahiyan Sanchez</div>
+            <div style="font-size:0.75rem; color:var(--gold);">Propietario, Cajamarca</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card reveal" style="transition-delay:0.24s; position:relative;">
+        <div style="font-size:1.8rem; color:var(--gold); margin-bottom:1rem; font-family:var(--ff-display);">"</div>
+        <p style="font-family:var(--ff-display); font-size:1.1rem; font-style:italic; color:var(--ivory); line-height:1.65; margin-bottom:1.25rem;">
+          El apartamento que encontré con ellos superó mis expectativas. La plataforma facilita mucho la búsqueda.
+        </p>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--ff-display); font-size:1.1rem; color:var(--gold);">A</div>
+          <div>
+            <div style="font-size:0.85rem; color:var(--ivory); font-weight:500;">David Pinzon</div>
+            <div style="font-size:0.75rem; color:var(--gold);">Ingeniero, Ibagué</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA FINAL ═══ -->
+<section class="section" style="background: var(--obsidian);">
+  <div class="container">
+    <div class="cta-nosotros reveal">
+      <span class="section-tag" style="display:inline-block; margin-bottom:1rem;">¿Listo para empezar?</span>
+      <h2 style="font-family:var(--ff-display); font-size:2.8rem; font-weight:300; color:var(--ivory); margin-bottom:1rem; line-height:1.1;">
+        Tu hogar ideal está<br><em style="color:var(--gold);">más cerca de lo que crees</em>
+      </h2>
+      <p style="color:var(--ivory-dimmer); max-width:520px; margin:0 auto 2.5rem; line-height:1.8; font-size:0.95rem;">
+        Nuestro equipo está listo para acompañarte en cada paso. Explora el portafolio o escríbenos hoy mismo.
+      </p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="propiedades.html" class="btn btn-primary btn-lg">Explorar propiedades</a>
+        <a href="https://wa.me/573054152644?text=¡Hola!%20Quiero%20saber%20más%20sobre%20Remolina%20Inmobiliaria" target="_blank" rel="noopener" class="btn btn-ghost btn-lg">
+          💬 Escribir por WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="logo-main text-gold">Remolina</span>
+        <span class="logo-sub" style="color:var(--ivory-dimmer); letter-spacing:0.2em; font-size:0.65rem; text-transform:uppercase;">Inmobiliaria</span>
+        <p>Conectando familias con propiedades extraordinarias en el Tolima desde 2016.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegación</h4>
+        <a href="index.html">Inicio</a>
+        <a href="propiedades.html">Propiedades</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="index.html#contacto">Contacto</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tipos de propiedad</h4>
+        <a href="propiedades.html?tipo=casa">Casas</a>
+        <a href="propiedades.html?tipo=apartamento">Apartamentos</a>
+        <a href="propiedades.html?tipo=finca">Fincas</a>
+        <a href="propiedades.html?tipo=lote">Lotes</a>
+        <a href="propiedades.html?tipo=almacen">Almacenes</a>
+      </div>
+      <div class="footer-col">
+        <h4>Cuenta</h4>
+        <a href="login.html">Iniciar sesión</a>
+        <a href="login.html#registro">Registrarse</a>
+        <a href="favoritos.html">Mis favoritos</a>
+        <a href="citas.html">Mis citas</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Remolina Inmobiliaria. Todos los derechos reservados.</p>
+      <p style="color:var(--ivory-dimmer);">Ibagué, Tolima · Colombia</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ FAB ═══ -->
+<div id="fab-group" class="floating-actions">
+  <div id="fab-items" class="fab-items oculto">
+    <div class="fab-item">
+      <span class="fab-label">Agendar cita</span>
+      <a class="fab-circle fab-calendar" href="https://calendly.com/danielremo3214/30min" target="_blank" rel="noopener" title="Agendar cita">📅</a>
+    </div>
+    <div class="fab-item">
+      <span class="fab-label">WhatsApp</span>
+      <a class="fab-circle fab-whatsapp" href="https://wa.me/573229460048?text=¡Hola!%20Estoy%20interesado%20en%20una%20propiedad" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+    </div>
+  </div>
+  <button id="fab-main" class="fab-main" aria-label="Abrir opciones">
+    <span class="ico ico-plus">+</span>
+    <span class="ico ico-close">×</span>
+  </button>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCk0zvcRGwu8qLCOas-QDJnyxbs7OVyZMs",
+  authDomain: "inmobiliariaremolina-b6cbe.firebaseapp.com",
+  projectId: "inmobiliariaremolina-b6cbe",
+  storageBucket: "inmobiliariaremolina-b6cbe.firebasestorage.app",
+  messagingSenderId: "1067635512335",
+  appId: "1:1067635512335:web:e604b88877dc95f5123f7a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user) => {
+  const navUser = document.getElementById('navUser');
+  const navLoginBtn = document.getElementById('navLoginBtn');
+  if (user) {
+    const snap = await getDoc(doc(db, 'usuarios', user.uid));
+    document.getElementById('navUserName').textContent = snap.exists() ? snap.data().nombre : user.email;
+    navUser.classList.remove('oculto');
+    navLoginBtn.classList.add('oculto');
+  }
+});
+
+document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await signOut(auth);
+  window.location.reload();
+});
+
+// Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 30);
+});
+
+// Hamburger
+document.getElementById('navHamburger').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+
+// FAB
+const fabMain = document.getElementById('fab-main');
+const fabItems = document.getElementById('fab-items');
+fabMain.addEventListener('click', () => {
+  fabItems.classList.toggle('oculto');
+  fabMain.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
+    fabItems.classList.add('oculto');
+    fabMain.classList.remove('open');
+  }
+});
+
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

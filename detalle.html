@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de propiedad — Remolina</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --obsidian: #0d0d0d;
+      --obsidian-2: #141414;
+      --obsidian-3: #1a1a1a;
+      --gold: #c9a84c;
+      --gold-light: #e8c96e;
+      --gold-dim: rgba(201,168,76,0.12);
+      --gold-border: rgba(201,168,76,0.25);
+      --white: #f5f3ee;
+      --muted: rgba(245,243,238,0.5);
+      --border-soft: rgba(255,255,255,0.07);
+      --nav-h: 70px;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Outfit', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--obsidian);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    a { color: var(--gold); text-decoration: none; transition: opacity 0.2s; }
+    a:hover { opacity: 0.75; }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ─── BREADCRUMB ─── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 2rem 0 3rem;
+    }
+    .breadcrumb .sep { opacity: 0.35; }
+    .breadcrumb .current { color: var(--gold); }
+
+    /* ─── HERO GALLERY ─── */
+    .gallery-hero {
+      display: block;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      height: 500px;
+    }
+
+    .gallery-hero .main-shot {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .gallery-hero .side-shot {
+      display: none;
+    }
+
+    .gallery-hero .side-shot:last-child {
+      display: none;
+    }
+
+    .gallery-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+
+    .gallery-hero .main-shot:hover img,
+    .gallery-hero .side-shot:hover img {
+      transform: scale(1.04);
+    }
+
+    .gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .see-all-btn {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--gold-border);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .see-all-btn:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--obsidian);
+    }
+
+    /* ─── THUMBNAIL STRIP (extra images) ─── */
+    .thumb-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 3.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold-border) transparent;
+    }
+    .thumb-strip::-webkit-scrollbar { height: 3px; }
+    .thumb-strip::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 99px; }
+
+    .thumb-item {
+      flex: 0 0 120px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, opacity 0.2s;
+      opacity: 0.6;
+    }
+    .thumb-item.active, .thumb-item:hover { border-color: var(--gold); opacity: 1; }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* PLACEHOLDER THUMBNAILS */
+    .thumb-placeholder {
+      flex: 0 0 120px;
+      height: 80px;
+      border-radius: 8px;
+      border: 1.5px dashed var(--gold-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .thumb-placeholder:hover { border-color: var(--gold); color: var(--gold); }
+    .thumb-placeholder svg { opacity: 0.5; }
+
+    /* ─── MAIN CONTENT ─── */
+    .detalle-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .det-tipo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+      background: var(--gold-dim);
+      padding: 0.3rem 0.85rem;
+      border-radius: 99px;
+      margin-bottom: 1.2rem;
+    }
+
+    .det-titulo {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 1rem;
+    }
+
+    .det-ubicacion {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .det-ubicacion svg { flex-shrink: 0; }
+
+    /* STATS ROW */
+    .det-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+    .det-stat {
+      background: var(--obsidian-2);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .det-stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .det-stat-value {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--white);
+    }
+    .det-stat-icon {
+      font-size: 1.1rem;
+      margin-bottom: 0.2rem;
+    }
+
+    /* SEPARATOR */
+    .det-sep {
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin: 0 0 2rem;
+    }
+
+    /* DESCRIPCIÓN */
+    .det-desc-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 1.25rem;
+      letter-spacing: 0.01em;
+    }
+
+    .det-desc-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .det-desc-item {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--border-soft);
+      color: rgba(245,243,238,0.78);
+      font-size: 0.95rem;
+      line-height: 1.75;
+      position: relative;
+      padding-left: 1rem;
+    }
+    .det-desc-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    /* CARACTERÍSTICAS ADICIONALES */
+    .det-extra-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 3rem;
+    }
+    .det-extra-item {
+      background: var(--obsidian-2);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .det-extra-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .det-extra-val {
+      font-size: 0.9rem;
+      color: var(--white);
+      font-weight: 400;
+    }
+
+    /* ─── RIGHT: SIDEBAR ─── */
+    .det-sidebar {
+      position: sticky;
+      top: calc(var(--nav-h, 70px) + 1.5rem);
+    }
+
+    .precio-card {
+      background: var(--obsidian-3);
+      border: 1px solid var(--gold-border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .precio-header {
+      background: linear-gradient(135deg, #1e1700, #2a1e00);
+      padding: 1.75rem 2rem;
+      border-bottom: 1px solid var(--gold-border);
+    }
+    .precio-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      opacity: 0.8;
+    }
+    .precio-valor {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+    .precio-nota {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    .precio-body {
+      padding: 1.75rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .btn-contactar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 1rem;
+      background: var(--gold);
+      color: var(--obsidian);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.25s, transform 0.15s;
+    }
+    .btn-contactar:hover {
+      background: var(--gold-light);
+      transform: translateY(-1px);
+      opacity: 1;
+    }
+    .btn-contactar:active { transform: translateY(0); }
+
+    .btn-wsp {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.9rem;
+      background: transparent;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-wsp:hover {
+      border-color: #25D366;
+      background: rgba(37,211,102,0.07);
+      color: #25D366;
+      opacity: 1;
+    }
+
+    .sidebar-meta {
+      background: var(--obsidian-3);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .sidebar-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 0.85rem;
+    }
+    .sidebar-meta-row:last-child { border-bottom: none; }
+    .sidebar-meta-row .key { color: var(--muted); }
+    .sidebar-meta-row .val { font-weight: 500; }
+
+    /* ─── LIGHTBOX ─── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+    }
+    .lightbox-inner img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+    .lb-close {
+      position: absolute;
+      top: -2.5rem;
+      right: 0;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .lb-close:hover { opacity: 1; }
+    .lb-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--gold-border);
+      color: var(--white);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+    .lb-nav:hover { background: var(--gold); color: var(--obsidian); }
+    .lb-prev { left: -3.5rem; }
+    .lb-next { right: -3.5rem; }
+    .lb-counter {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      .detalle-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .det-sidebar { position: static; }
+      .gallery-hero { height: 420px; }
+    }
+
+    @media (max-width: 768px) {
+      .gallery-hero { height: 260px; }
+      .det-stats { grid-template-columns: repeat(3, 1fr); }
+      .det-extra-grid { grid-template-columns: 1fr; }
+      .lb-prev { left: -2rem; }
+      .lb-next { right: -2rem; }
+    }
+
+    /* ─── ENTRANCE ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim-1 { animation: fadeUp 0.6s ease both; }
+    .anim-2 { animation: fadeUp 0.6s 0.1s ease both; }
+    .anim-3 { animation: fadeUp 0.6s 0.2s ease both; }
+    .anim-4 { animation: fadeUp 0.6s 0.3s ease both; }
+
+    /* GOLD LINE ACCENT */
+    .gold-line {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.3;
+      margin: 3.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <div class="nav-logo-text">
+        <span class="logo-main">Remolina</span>
+        <span class="logo-sub">Inmobiliaria</span>
+      </div>
+    </a>
+
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html" class="nav-link">Inicio</a></li>
+      <li><a href="propiedades.html" class="nav-link active">Propiedades</a></li>
+      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+      <li><a href="#contacto" class="nav-link">Contacto</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <div class="nav-user oculto" id="navUser">
+        <span class="nav-user-name" id="navUserName"></span>
+        <a href="favoritos.html" class="btn btn-ghost btn-sm">❤ Favoritos</a>
+        <a href="login.html" class="btn btn-ghost btn-sm" id="navLogout">Salir</a>
+      </div>
+      <div id="navLoginBtn">
+        <a href="login.html" class="btn btn-primary">Iniciar sesión</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main style="padding-top: var(--nav-h); background: var(--obsidian); min-height:100vh;">
+  <div class="container">
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb anim-1">
+      <a href="index.html">Inicio</a>
+      <span class="sep">›</span>
+      <a href="propiedades.html">Propiedades</a>
+      <span class="sep">›</span>
+      <span class="current" id="breadTitle">Cargando...</span>
+    </nav>
+
+    <!-- DETALLE GRID — galería + info izq / sidebar der -->
+    <div class="detalle-grid anim-2">
+
+      <!-- ── COLUMNA IZQUIERDA: galería + info ── -->
+      <div class="det-left">
+
+        <!-- GALLERY HERO -->
+        <div class="gallery-hero" id="galleryHero">
+          <div class="main-shot" id="heroMain" onclick="abrirLightbox(0)">
+            <img id="mainHeroImg" src="" alt="Imagen principal">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="side-shot" id="heroSide1" onclick="abrirLightbox(1)">
+            <img id="side1Img" src="" alt="">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="side-shot" id="heroSide2" onclick="abrirLightbox(2)" style="position:relative">
+            <img id="side2Img" src="" alt="">
+            <div class="gallery-overlay"></div>
+            <button class="see-all-btn" onclick="event.stopPropagation(); abrirLightbox(2)">
+              Ver todas las fotos
+            </button>
+          </div>
+        </div>
+
+        <!-- THUMBNAIL STRIP -->
+        <div class="thumb-strip" id="thumbStrip">
+          <div class="thumb-placeholder" title="Agregar imagen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span>+ Foto</span>
+          </div>
+          <div class="thumb-placeholder" title="Agregar imagen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span>+ Foto</span>
+          </div>
+          <div class="thumb-placeholder" title="Agregar imagen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span>+ Foto</span>
+          </div>
+        </div>
+
+        <!-- Separador -->
+        <div class="det-sep" style="margin-top:2rem;"></div>
+
+        <!-- Tipo + Título -->
+        <div id="detTipo" class="det-tipo"></div>
+        <h1 id="detTitulo" class="det-titulo"></h1>
+
+        <!-- Ubicación -->
+        <div class="det-ubicacion" id="detUbicacion">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s-8-7.5-8-12a8 8 0 1 1 16 0c0 4.5-8 12-8 12z"/>
+            <circle cx="12" cy="10" r="2.5"/>
+          </svg>
+          <span id="ubicacionText">—</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="det-stats" id="detStats"></div>
+
+        <div class="det-sep"></div>
+
+        <!-- Descripción -->
+        <h2 class="det-desc-title">Acerca de esta propiedad</h2>
+        <div class="det-desc-block" id="detDesc"></div>
+
+        <!-- Características adicionales -->
+        <div class="det-extra-grid" id="detExtras" style="display:none"></div>
+
+      </div><!-- /det-left -->
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="det-sidebar">
+
+        <!-- PRECIO CARD -->
+        <div class="precio-card">
+          <div class="precio-header">
+            <div class="precio-label">Precio de venta</div>
+            <div class="precio-valor" id="detPrecio">Consultar</div>
+            <div class="precio-nota" id="detPrecioNota"></div>
+          </div>
+          <div class="precio-body">
+            <a href="index.html#contacto" class="btn-contactar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Contactar asesor
+            </a>
+            <a href="https://wa.me/573000000000" target="_blank" class="btn-wsp">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+              </svg>
+              WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- METADATA CARD -->
+        <div class="sidebar-meta" id="sidebarMeta">
+          <div class="sidebar-meta-row">
+            <span class="key">Tipo</span>
+            <span class="val" id="metaTipo">—</span>
+          </div>
+          <div class="sidebar-meta-row">
+            <span class="key">Estado</span>
+            <span class="val" id="metaEstado">—</span>
+          </div>
+          <div class="sidebar-meta-row">
+            <span class="key">Ciudad</span>
+            <span class="val" id="metaCiudad">—</span>
+          </div>
+          <div class="sidebar-meta-row">
+            <span class="key">Área</span>
+            <span class="val" id="metaArea">—</span>
+          </div>
+          <div class="sidebar-meta-row">
+            <span class="key">Referencia</span>
+            <span class="val" id="metaId" style="font-size:0.78rem; color:var(--muted);">—</span>
+          </div>
+        </div>
+
+      </aside>
+    </div><!-- /detalle-grid -->
+
+    <div style="padding-bottom: 6rem;"></div>
+
+  </div><!-- /container -->
+</main>
+
+<!-- ─── LIGHTBOX ─── -->
+<div class="lightbox" id="lightbox" onclick="cerrarLightbox()">
+  <div class="lightbox-inner" onclick="event.stopPropagation()">
+    <button class="lb-close" onclick="cerrarLightbox()">✕</button>
+    <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
+    <img id="lbImg" src="" alt="">
+    <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
+    <div class="lb-counter" id="lbCounter">1 / 1</div>
+  </div>
+</div>
+
+<script>
+  let allImgs = [];
+  let lbIdx  = 0;
+
+  /* ── LIGHTBOX ── */
+  function abrirLightbox(i) {
+    lbIdx = i;
+    actualizarLb();
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function cerrarLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function lbNav(dir) {
+    lbIdx = (lbIdx + dir + allImgs.length) % allImgs.length;
+    actualizarLb();
+  }
+
+  function actualizarLb() {
+    document.getElementById('lbImg').src = allImgs[lbIdx] || '';
+    document.getElementById('lbCounter').textContent = `${lbIdx + 1} / ${allImgs.length}`;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+    if (e.key === 'Escape')     cerrarLightbox();
+  });
+
+  /* ── CARGA ── */
+  async function cargarDetalle() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) return;
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${id}/`);
+      const p   = await res.json();
+
+      // ── Títulos y meta ──
+      document.title = p.titulo + ' — Remolina';
+      document.getElementById('breadTitle').textContent  = p.titulo;
+      document.getElementById('detTitulo').textContent   = p.titulo;
+      document.getElementById('metaId').textContent      = '#' + id;
+
+      // ── Tipo ──
+      if (p.tipo) {
+        document.getElementById('detTipo').textContent  = p.tipo;
+        document.getElementById('metaTipo').textContent = p.tipo;
+      }
+
+      // ── Precio ──
+      document.getElementById('detPrecio').textContent =
+        p.precio ? '$' + p.precio.toLocaleString('es-CO') : 'Consultar precio';
+      document.getElementById('detPrecioNota').textContent =
+        p.precio ? 'Negociable • Financiación disponible' : '';
+
+      // ── Ubicación ──
+      const ubText = [p.ubicacion, p.ciudad, 'Tolima'].filter(Boolean).join(' — ');
+      document.getElementById('ubicacionText').textContent = ubText;
+
+      // ── Estado y ciudad (sidebar) ──
+      document.getElementById('metaEstado').textContent = p.estado || '—';
+      document.getElementById('metaCiudad').textContent = p.ciudad ? p.ciudad + ', Tolima' : '—';
+
+      // ── Área ──
+      let areaStr = '—';
+      if (p.area) {
+        areaStr = p.area >= 10000
+          ? (p.area / 10000).toFixed(2) + ' ha'
+          : p.area.toLocaleString('es-CO') + ' m²';
+      }
+      document.getElementById('metaArea').textContent = areaStr;
+
+      // ── Stats row ──
+      const statsData = [
+        { icon: '📐', label: 'Área',   value: areaStr },
+        { icon: '🏷️', label: 'Tipo',   value: p.tipo  || '—' },
+        { icon: '✅', label: 'Estado', value: p.estado || '—' },
+      ];
+      document.getElementById('detStats').innerHTML = statsData.map(s => `
+        <div class="det-stat">
+          <div class="det-stat-icon">${s.icon}</div>
+          <div class="det-stat-label">${s.label}</div>
+          <div class="det-stat-value">${s.value}</div>
+        </div>
+      `).join('');
+
+      // ── Descripción ──
+      const frases = (p.descripcion || '').split('.')
+        .map(d => d.trim()).filter(Boolean);
+      document.getElementById('detDesc').innerHTML = frases.map(f => `
+        <div class="det-desc-item">${f}.</div>
+      `).join('');
+
+      // ── Extras adicionales (si existen) ──
+      const extras = [];
+      if (p.habitaciones) extras.push({ label: 'Habitaciones', val: p.habitaciones });
+      if (p.banos)        extras.push({ label: 'Baños',        val: p.banos        });
+      if (p.parqueadero)  extras.push({ label: 'Parqueadero',  val: p.parqueadero  });
+      if (p.estrato)      extras.push({ label: 'Estrato',      val: p.estrato      });
+
+      if (extras.length) {
+        const grid = document.getElementById('detExtras');
+        grid.style.display = 'grid';
+        grid.innerHTML = extras.map(e => `
+          <div class="det-extra-item">
+            <div class="det-extra-label">${e.label}</div>
+            <div class="det-extra-val">${e.val}</div>
+          </div>
+        `).join('');
+      }
+
+      // ── IMÁGENES principales ──
+      allImgs = [];
+      if (p.imagen)     allImgs.push("http://127.0.0.1:8000" + p.imagen);
+      if (p.imagen_url) allImgs.push(p.imagen_url);
+      // Si la API devuelve un array imagenes[]
+      if (Array.isArray(p.imagenes)) {
+        p.imagenes.forEach(img => {
+          const src = img.imagen ? "http://127.0.0.1:8000" + img.imagen : img.url;
+          if (src && !allImgs.includes(src)) allImgs.push(src);
+        });
+      }
+      if (allImgs.length === 0) allImgs.push("videos/dani.png");
+
+      // Galería hero
+      document.getElementById('mainHeroImg').src = allImgs[0] || '';
+      document.getElementById('side1Img').src    = allImgs[1] || allImgs[0] || '';
+      document.getElementById('side2Img').src    = allImgs[2] || allImgs[0] || '';
+
+      if (allImgs.length < 2) document.getElementById('heroSide1').style.display = 'none';
+      if (allImgs.length < 3) document.getElementById('heroSide2').style.display = 'none';
+
+      // Thumbnails
+      const strip = document.getElementById('thumbStrip');
+      const thumbsHTML = allImgs.map((src, i) => `
+        <div class="thumb-item ${i === 0 ? 'active' : ''}"
+             onclick="seleccionarThumb(${i})">
+          <img src="${src}" alt="Vista ${i + 1}">
+        </div>
+      `).join('');
+
+      // Placeholders al final
+      const phCount = Math.max(0, 3 - allImgs.length);
+      const phHTML = Array.from({length: phCount}).map(() => `
+        <div class="thumb-placeholder">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M12 8v8M8 12h8"/>
+          </svg>
+          <span>+ Foto</span>
+        </div>
+      `).join('');
+
+      strip.innerHTML = thumbsHTML + phHTML;
+
+    } catch (err) {
+      console.error("Error cargando detalle:", err);
+    }
+  }
+
+  function seleccionarThumb(i) {
+    document.getElementById('mainHeroImg').src = allImgs[i];
+    document.querySelectorAll('.thumb-item').forEach((el, idx) => {
+      el.classList.toggle('active', idx === i);
+    });
+  }
+
+  cargarDetalle();
+</script>
+
+</body>
+</html>
