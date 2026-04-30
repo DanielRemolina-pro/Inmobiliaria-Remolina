@@ -628,6 +628,39 @@ img { display: block; max-width: 100%; }
   gap: 0.5rem;
 }
 
+/* ── Admin actions dentro de la card ── */
+.card-admin-actions {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(212,175,55,0.25);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-admin-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.78rem;
+  font-family: var(--ff-mono);
+  letter-spacing: 0.04em;
+  background: rgba(212,175,55,0.08);
+  border: 1px solid rgba(212,175,55,0.35);
+  color: var(--gold);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-admin-edit:hover {
+  background: rgba(212,175,55,0.18);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
 /* ══════════════════════════
    WHY US SECTION
 ══════════════════════════ */

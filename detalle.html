@@ -741,6 +741,62 @@
 </div>
 
 <script>
+  // ── Auth state + nav (Django session API) ──────────────────────────────
+  const AUTH_API  = 'http://127.0.0.1:8000/api/auth';
+  const PROPS_API = 'http://127.0.0.1:8000/api/propiedades';
+  let currentUser = null;
+
+  async function getCsrfToken() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    if (m) return m[1];
+    const r = await fetch(`${AUTH_API}/csrf/`, { credentials: 'include' });
+    return (await r.json()).csrfToken;
+  }
+
+  (async () => {
+    const navUser     = document.getElementById('navUser');
+    const navLoginBtn = document.getElementById('navLoginBtn');
+    try {
+      const res = await fetch(`${AUTH_API}/me/`, { credentials: 'include' });
+      if (res.ok) {
+        currentUser = await res.json();
+        document.getElementById('navUserName').textContent =
+          currentUser.first_name || currentUser.username || currentUser.email;
+        navUser.classList.remove('oculto');
+        navLoginBtn.classList.add('oculto');
+      } else {
+        navUser.classList.add('oculto');
+        navLoginBtn.classList.remove('oculto');
+      }
+    } catch {
+      navUser.classList.add('oculto');
+      navLoginBtn.classList.remove('oculto');
+    }
+  })();
+
+  document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const csrf = await getCsrfToken();
+    await fetch(`${AUTH_API}/logout/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    window.location.reload();
+  });
+
+  document.getElementById('navHamburger')?.addEventListener('click', () => {
+    document.getElementById('navMenu').classList.toggle('open');
+  });
+
+  // ── Navbar scroll
+  const navbar = document.getElementById('navbar');
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 30);
+    });
+  }
+
   let allImgs = [];
   let lbIdx  = 0;
 
@@ -900,6 +956,53 @@
       `).join('');
 
       strip.innerHTML = thumbsHTML + phHTML;
+
+      // ── Panel de administración (solo is_staff) ───────────────────────
+      if (currentUser?.is_staff) {
+        let adminPanel = document.getElementById('adminPanel');
+        if (!adminPanel) {
+          adminPanel = document.createElement('div');
+          adminPanel.id = 'adminPanel';
+          adminPanel.style.cssText =
+            'display:flex;gap:0.75rem;margin:1.5rem 0;padding:1rem;' +
+            'background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:0.5rem;';
+          adminPanel.innerHTML = `
+            <span style="flex:1;color:var(--ivory-dim,#aaa);font-size:0.85rem;align-self:center;">
+              ⚙ Panel de administrador
+            </span>
+            <a href="admin-editar.html?id=${id}"
+               style="padding:0.5rem 1.25rem;background:#d97706;color:#fff;border-radius:0.4rem;font-size:0.9rem;text-decoration:none;">
+              ✏ Editar propiedad
+            </a>
+            <button id="btnEliminarProp"
+              style="padding:0.5rem 1.25rem;background:#dc2626;color:#fff;border:none;border-radius:0.4rem;font-size:0.9rem;cursor:pointer;">
+              🗑 Eliminar
+            </button>
+          `;
+          // Insertar después del breadcrumb
+          const breadcrumb = document.querySelector('.breadcrumb');
+          breadcrumb ? breadcrumb.after(adminPanel) : document.querySelector('main .container').prepend(adminPanel);
+        }
+
+        document.getElementById('btnEliminarProp')?.addEventListener('click', async () => {
+          if (!confirm('¿Eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
+          try {
+            const csrf = await getCsrfToken();
+            const r = await fetch(`${PROPS_API}/${id}/`, {
+              method: 'DELETE',
+              headers: { 'X-CSRFToken': csrf },
+              credentials: 'include',
+            });
+            if (r.status === 204) {
+              alert('Propiedad eliminada.');
+              window.location.href = 'propiedades.html';
+            } else {
+              const err = await r.json();
+              alert(err.error || 'Error al eliminar.');
+            }
+          } catch { alert('Error de conexión.'); }
+        });
+      }
 
     } catch (err) {
       console.error("Error cargando detalle:", err);

@@ -135,33 +135,48 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+// ── Auth state (Django session API) ──────────────────────────────────────
+const API = 'http://127.0.0.1:8000/api/auth';
+let currentUser = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCk0zvcRGwu8qLCOas-QDJnyxbs7OVyZMs",
-  authDomain: "inmobiliariaremolina-b6cbe.firebaseapp.com",
-  projectId: "inmobiliariaremolina-b6cbe",
-  storageBucket: "inmobiliariaremolina-b6cbe.firebasestorage.app",
-  messagingSenderId: "1067635512335",
-  appId: "1:1067635512335:web:e604b88877dc95f5123f7a"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+async function getCsrfToken() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  if (m) return m[1];
+  const r = await fetch(`${API}/csrf/`, { credentials: 'include' });
+  return (await r.json()).csrfToken;
+}
 
-onAuthStateChanged(auth, async (user) => {
-  const navUser = document.getElementById('navUser');
+(async () => {
+  const navUser     = document.getElementById('navUser');
   const navLoginBtn = document.getElementById('navLoginBtn');
-  if (user) {
-    const snap = await getDoc(doc(db, 'usuarios', user.uid));
-    document.getElementById('navUserName').textContent = snap.exists() ? snap.data().nombre : user.email;
-    navUser.classList.remove('oculto');
-    navLoginBtn.classList.add('oculto');
+  try {
+    const res = await fetch(`${API}/me/`, { credentials: 'include' });
+    if (res.ok) {
+      currentUser = await res.json();
+      document.getElementById('navUserName').textContent =
+        currentUser.first_name || currentUser.username || currentUser.email;
+      navUser.classList.remove('oculto');
+      navLoginBtn.classList.add('oculto');
+    } else {
+      navUser.classList.add('oculto');
+      navLoginBtn.classList.remove('oculto');
+    }
+  } catch {
+    navUser.classList.add('oculto');
+    navLoginBtn.classList.remove('oculto');
   }
+})();
+
+document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const csrf = await getCsrfToken();
+  await fetch(`${API}/logout/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  window.location.reload();
 });
-document.getElementById('navLogout')?.addEventListener('click', async(e) => { e.preventDefault(); await signOut(auth); window.location.reload(); });
 
 let PAGE_SIZE = 12;
 let currentPage = 1;
@@ -278,6 +293,10 @@ function render() {
         <div class="card-actions">
           <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
           <a href="index.html#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+          ${currentUser?.is_staff ? `
+          <button class="btn btn-sm" style="background:#d97706;color:#fff;" onclick="editarPropiedad(${p.id})">✏ Editar</button>
+          <button class="btn btn-sm" style="background:#dc2626;color:#fff;" onclick="eliminarPropiedad(${p.id}, this)">🗑 Eliminar</button>
+          ` : ''}
         </div>
       </div>
     </div>
@@ -343,6 +362,36 @@ function showToast(msg, type='') {
   t.textContent = msg;
   document.getElementById('toastContainer').appendChild(t);
   setTimeout(() => t.remove(), 3200);
+}
+
+// ── Funciones de administración (solo is_staff) ───────────────────────────
+const PROPS_API = 'http://127.0.0.1:8000/api/propiedades';
+
+async function eliminarPropiedad(id, btn) {
+  if (!confirm('¿Seguro que deseas eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
+  try {
+    const csrf = await getCsrfToken();
+    const res = await fetch(`${PROPS_API}/${id}/`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': csrf },
+      credentials: 'include',
+    });
+    if (res.status === 204) {
+      // Quitar la tarjeta del DOM
+      btn.closest('.propiedad-card').remove();
+      propiedades = propiedades.filter(p => p.id !== id);
+      filtered    = filtered.filter(p => p.id !== id);
+      document.getElementById('totalCount').textContent = filtered.length;
+      showToast('Propiedad eliminada.', 'success');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Error al eliminar.', 'error');
+    }
+  } catch { showToast('Error de conexión.', 'error'); }
+}
+
+function editarPropiedad(id) {
+  window.location.href = `detalle.html?id=${id}&modo=editar`;
 }
 
 cargarPropiedades();
