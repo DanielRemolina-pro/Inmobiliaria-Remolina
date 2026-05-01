@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Favoritos — Remolina Inmobiliaria</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Estilos exclusivos de favoritos.html ── */
+    .favs-hero {
+      background: var(--obsidian-2);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 3rem 0 2rem;
+    }
+
+    .favs-hero-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .favs-count-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--gold-dim);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-family: var(--ff-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      margin-bottom: 0.75rem;
+    }
+
+    .favs-title {
+      font-family: var(--ff-display);
+      font-size: 2.8rem;
+      font-weight: 300;
+      color: var(--ivory);
+      line-height: 1.1;
+    }
+
+    .favs-subtitle {
+      color: var(--ivory-dimmer);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    /* Skeleton de carga */
+    .favs-skeleton {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .skeleton-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+    }
+
+    .skeleton-img {
+      height: 220px;
+      background: linear-gradient(90deg, var(--obsidian-3) 25%, var(--obsidian-4) 50%, var(--obsidian-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    .skeleton-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--obsidian-3) 25%, var(--obsidian-4) 50%, var(--obsidian-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Estado vacío */
+    .favs-empty {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--ivory-dimmer);
+    }
+
+    .favs-empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+
+    .favs-empty h3 {
+      font-family: var(--ff-display);
+      font-size: 1.8rem;
+      color: var(--ivory);
+      margin-bottom: 0.75rem;
+    }
+
+    .favs-empty p {
+      max-width: 400px;
+      margin: 0 auto 2rem;
+      line-height: 1.8;
+    }
+
+    /* Estado no autenticado */
+    .favs-auth-wall {
+      text-align: center;
+      padding: 5rem 2rem;
+    }
+
+    .favs-auth-wall .lock-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .favs-auth-wall h3 {
+      font-family: var(--ff-display);
+      font-size: 2rem;
+      color: var(--ivory);
+      margin-bottom: 0.75rem;
+    }
+
+    .favs-auth-wall p {
+      color: var(--ivory-dimmer);
+      max-width: 380px;
+      margin: 0 auto 2rem;
+      line-height: 1.8;
+    }
+
+    .favs-auth-wall .auth-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Botón eliminar de favorito en card */
+    .btn-remove-fav {
+      background: rgba(231, 76, 60, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--ff-body);
+    }
+
+    .btn-remove-fav:hover {
+      background: rgba(231, 76, 60, 0.25);
+      border-color: rgba(248, 113, 113, 0.6);
+    }
+
+    /* Card fav siempre activo en esta página */
+    .propiedad-card .card-fav {
+      pointer-events: none;
+    }
+
+    /* Error state */
+    .favs-error {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--ivory-dimmer);
+    }
+
+    .favs-error-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<header class="navbar scrolled" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <div class="nav-logo-text">
+        <span class="logo-main">Remolina</span>
+        <span class="logo-sub">Inmobiliaria</span>
+      </div>
+    </a>
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="index.html" class="nav-link">Inicio</a></li>
+      <li><a href="propiedades.html" class="nav-link">Propiedades</a></li>
+      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+      <li><a href="index.html#contacto" class="nav-link">Contacto</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="nav-user oculto" id="navUser">
+        <span class="nav-user-name" id="navUserName"></span>
+        <a href="favoritos.html" class="btn btn-ghost btn-sm active">❤ Favoritos</a>
+        <a href="#" class="btn btn-ghost btn-sm" id="navLogout">Salir</a>
+      </div>
+      <div id="navLoginBtn">
+        <a href="login.html" class="btn btn-primary">Iniciar sesión</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main style="padding-top: var(--nav-h); min-height: 100vh; background: var(--obsidian);">
+
+  <!-- Hero cabecera -->
+  <div class="favs-hero">
+    <div class="container">
+      <div class="favs-hero-inner">
+        <div>
+          <div class="favs-count-badge">
+            ❤ <span id="favCount">0</span> guardados
+          </div>
+          <h1 class="favs-title">Mis favoritos</h1>
+          <p class="favs-subtitle">Propiedades que has guardado para revisar más tarde.</p>
+        </div>
+        <div id="headerActions" style="display:none;">
+          <a href="propiedades.html" class="btn btn-ghost btn-sm">
+            ← Ver todas las propiedades
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+    <!-- Skeleton de carga -->
+    <div id="favsLoading" class="favs-skeleton">
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line" style="width:40%;"></div>
+          <div class="skeleton-line" style="width:70%;"></div>
+          <div class="skeleton-line" style="width:55%;"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line" style="width:40%;"></div>
+          <div class="skeleton-line" style="width:70%;"></div>
+          <div class="skeleton-line" style="width:55%;"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line" style="width:40%;"></div>
+          <div class="skeleton-line" style="width:70%;"></div>
+          <div class="skeleton-line" style="width:55%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Muro de autenticación -->
+    <div id="favsAuthWall" class="favs-auth-wall" style="display:none;">
+      <div class="lock-icon">🔒</div>
+      <h3>Inicia sesión para ver tus favoritos</h3>
+      <p>
+        Guarda las propiedades que más te interesan y accede a ellas fácilmente
+        desde cualquier dispositivo.
+      </p>
+      <div class="auth-actions">
+        <a href="login.html" class="btn btn-primary btn-lg">Iniciar sesión</a>
+        <a href="login.html#registro" class="btn btn-ghost btn-lg">Crear cuenta</a>
+      </div>
+    </div>
+
+    <!-- Error de carga -->
+    <div id="favsError" class="favs-error" style="display:none;">
+      <div class="favs-error-icon">⚠️</div>
+      <p>No se pudieron cargar tus favoritos. Intenta recargar la página.</p>
+      <button class="btn btn-ghost btn-sm" onclick="window.location.reload()" style="margin-top:1rem;">
+        Recargar
+      </button>
+    </div>
+
+    <!-- Estado vacío (autenticado pero sin favoritos) -->
+    <div id="favsEmpty" class="favs-empty" style="display:none;">
+      <div class="favs-empty-icon">🤍</div>
+      <h3>Aún no tienes favoritos</h3>
+      <p>
+        Explora nuestro catálogo y toca el corazón ♡ en las propiedades que te interesen
+        para guardarlas aquí.
+      </p>
+      <a href="propiedades.html" class="btn btn-primary btn-lg">Explorar propiedades</a>
+    </div>
+
+    <!-- Grid de favoritos -->
+    <div class="propiedades-grid" id="favsGrid"></div>
+
+  </div>
+</main>
+
+<!-- FAB -->
+<div id="fab-group" class="floating-actions">
+  <div id="fab-items" class="fab-items oculto">
+    <div class="fab-item">
+      <span class="fab-label">Agendar cita</span>
+      <a class="fab-circle fab-calendar" href="https://calendly.com/danielremo3214/30min" target="_blank" rel="noopener">📅</a>
+    </div>
+    <div class="fab-item">
+      <span class="fab-label">WhatsApp</span>
+      <a class="fab-circle fab-whatsapp" href="https://wa.me/573054152644?text=¡Hola!" target="_blank" rel="noopener">💬</a>
+    </div>
+  </div>
+  <button id="fab-main" class="fab-main">
+    <span class="ico ico-plus">+</span>
+    <span class="ico ico-close">×</span>
+  </button>
+</div>
+
+<footer style="background: var(--obsidian-2); border-top:1px solid var(--border-soft); padding:2rem; text-align:center;">
+  <p style="font-size:0.8rem; color:var(--ivory-dimmer);">© 2026 Remolina Inmobiliaria</p>
+</footer>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+// ── Constantes API ──────────────────────────────────────────────────────────
+const API_AUTH = 'http://127.0.0.1:8000/api/auth';
+const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+async function getCsrfToken() {
+  // En contexto cross-origin document.cookie no contiene cookies del dominio
+  // :8000, por eso siempre pedimos el token al endpoint y lo cacheamos.
+  if (window.__csrfToken) return window.__csrfToken;
+  const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
+  const data = await r.json();
+  window.__csrfToken = data.csrfToken;
+  return window.__csrfToken;
+}
+
+function formatPrecio(p) {
+  if (p === null || p === undefined) return 'Consultar precio';
+  return '$ ' + Number(p).toLocaleString('es-CO');
+}
+
+function formatArea(a) {
+  if (!a) return '—';
+  return a >= 10000 ? (a / 10000).toFixed(1) + ' ha' : a + ' m²';
+}
+
+// ── UI helpers ───────────────────────────────────────────────────────────────
+function hideLoading() {
+  document.getElementById('favsLoading').style.display = 'none';
+}
+
+function showSection(id) {
+  document.getElementById(id).style.display = '';
+}
+
+// ── Eliminar de favoritos ────────────────────────────────────────────────────
+async function quitarFavorito(propId, cardEl) {
+  // Deshabilitar el botón visualmente durante la petición
+  const btn = cardEl.querySelector('.btn-remove-fav');
+  if (btn) btn.disabled = true;
+
+  try {
+    const csrf = await getCsrfToken();
+    const res  = await fetch(`${API_FAV}/toggle/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ propiedad_id: propId }),
+    });
+
+    if (res.ok || res.status === 201) {
+      const data = await res.json();
+      if (data.action === 'removed') {
+        // Animación de salida antes de eliminar del DOM
+        cardEl.style.transition = 'opacity 0.3s, transform 0.3s';
+        cardEl.style.opacity    = '0';
+        cardEl.style.transform  = 'scale(0.95)';
+        setTimeout(() => {
+          cardEl.remove();
+          // Actualizar contador
+          const grid    = document.getElementById('favsGrid');
+          const total   = grid.querySelectorAll('.propiedad-card').length;
+          document.getElementById('favCount').textContent = total;
+          if (total === 0) {
+            showSection('favsEmpty');
+            document.getElementById('headerActions').style.display = 'none';
+          }
+        }, 300);
+        showToast('Eliminado de favoritos');
+      } else {
+        // Si el backend lo añadió de nuevo (no debería pasar aquí), recargar
+        showToast('Actualizado', 'success');
+        if (btn) btn.disabled = false;
+      }
+    } else {
+      showToast('No se pudo quitar el favorito', 'error');
+      if (btn) btn.disabled = false;
+    }
+  } catch {
+    showToast('Error de conexión', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ── Build card ───────────────────────────────────────────────────────────────
+function buildFavCard(fav, delay = 0) {
+  // La API de favoritos puede devolver el objeto directamente o anidado
+  // Soportamos ambas estructuras: { propiedad: {...} } o directamente {...}
+  const p = fav.propiedad || fav;
+
+  const img = p.imagen_display || p.imagen_url || 'videos/dani.png';
+
+  const features = [
+    p.habitaciones ? `${p.habitaciones} 🛏` : null,
+    p.banos        ? `${p.banos} 🛁`        : null,
+    p.area         ? formatArea(p.area)      : null,
+  ].filter(Boolean);
+
+  const card = document.createElement('div');
+  card.className = 'propiedad-card reveal';
+  card.style.transitionDelay = `${delay}s`;
+
+  card.innerHTML = `
+    <div class="card-img-wrap">
+      <img src="${img}" alt="${p.titulo}" loading="lazy"
+           onerror="this.src='videos/dani.png'">
+      <span class="card-badge ${p.estado || 'disponible'}">
+        ${p.estado ? p.estado.charAt(0).toUpperCase() + p.estado.slice(1) : 'Disponible'}
+      </span>
+      <!-- Corazón siempre activo en esta página -->
+      <button class="card-fav active" title="Guardado en favoritos" aria-label="En favoritos">♥</button>
+    </div>
+    <div class="card-body">
+      <div class="card-type">
+        ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'}
+        ${p.ciudad ? '• ' + p.ciudad : ''}
+      </div>
+      <h3 class="card-title">${p.titulo}</h3>
+      <div class="card-location">📍 ${p.ciudad || 'Ibagué'}, Tolima</div>
+      <div class="card-price">${formatPrecio(p.precio)}</div>
+      ${features.length
+        ? `<div class="card-features">${features.map(f => `<span>${f}</span>`).join('')}</div>`
+        : ''}
+      <div class="card-actions">
+        <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
+        <button class="btn-remove-fav" data-id="${p.id}">🗑 Quitar</button>
+      </div>
+    </div>`;
+
+  // Listener para quitar favorito
+  card.querySelector('.btn-remove-fav').addEventListener('click', () => {
+    quitarFavorito(p.id, card);
+  });
+
+  return card;
+}
+
+// ── Carga de favoritos ───────────────────────────────────────────────────────
+async function cargarFavoritos() {
+  try {
+    const res = await fetch(`${API_FAV}/`, { credentials: 'include' });
+
+    hideLoading();
+
+    if (res.status === 401 || res.status === 403) {
+      // No autenticado
+      showSection('favsAuthWall');
+      return;
+    }
+
+    if (!res.ok) throw new Error('API error');
+
+    const data = await res.json();
+    // Soportar respuesta paginada { results: [...] } o array directo
+    const lista = Array.isArray(data) ? data : (data.results || []);
+
+    document.getElementById('favCount').textContent = lista.length;
+
+    if (lista.length === 0) {
+      showSection('favsEmpty');
+      return;
+    }
+
+    document.getElementById('headerActions').style.display = '';
+
+    const grid = document.getElementById('favsGrid');
+    lista.forEach((fav, i) => {
+      const card = buildFavCard(fav, i * 0.08);
+      grid.appendChild(card);
+    });
+
+    // Animación reveal
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    grid.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  } catch {
+    hideLoading();
+    showSection('favsError');
+  }
+}
+
+// ── Auth init ────────────────────────────────────────────────────────────────
+async function initAuth() {
+  const navUser     = document.getElementById('navUser');
+  const navLoginBtn = document.getElementById('navLoginBtn');
+  try {
+    const res = await fetch(`${API_AUTH}/me/`, { credentials: 'include' });
+    if (res.ok) {
+      const user = await res.json();
+      document.getElementById('navUserName').textContent =
+        user.first_name || user.username || user.email;
+      navUser.classList.remove('oculto');
+      navLoginBtn.classList.add('oculto');
+      return true; // autenticado
+    } else {
+      navUser.classList.add('oculto');
+      navLoginBtn.classList.remove('oculto');
+      return false;
+    }
+  } catch {
+    navUser.classList.add('oculto');
+    navLoginBtn.classList.remove('oculto');
+    return false;
+  }
+}
+
+// ── Logout ───────────────────────────────────────────────────────────────────
+document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const csrf = await getCsrfToken();
+  await fetch(`${API_AUTH}/logout/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  window.location.href = 'index.html';
+});
+
+// ── FAB ──────────────────────────────────────────────────────────────────────
+const fabMain  = document.getElementById('fab-main');
+const fabItems = document.getElementById('fab-items');
+fabMain.addEventListener('click', () => {
+  fabItems.classList.toggle('oculto');
+  fabMain.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
+    fabItems.classList.add('oculto');
+    fabMain.classList.remove('open');
+  }
+});
+
+// ── Hamburger ────────────────────────────────────────────────────────────────
+document.getElementById('navHamburger').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  const autenticado = await initAuth();
+  if (!autenticado) {
+    // Mostrar muro de auth sin hacer petición a /favoritos/
+    hideLoading();
+    showSection('favsAuthWall');
+    document.getElementById('favCount').textContent = '0';
+    return;
+  }
+  await cargarFavoritos();
+})();
+</script>
+</body>
+</html>
