@@ -147,8 +147,8 @@ class PropiedadListSerializer(serializers.ModelSerializer):
         model = Propiedad
         fields = (
             'id', 'titulo', 'precio', 'tipo', 'estado',
-            'ciudad', 'area', 'habitaciones', 'banos',
-            'imagen_display',
+            'ciudad', 'ubicacion', 'area', 'habitaciones', 'banos',
+            'imagen_display', 'imagen_url',
         )
 
     def get_imagen_display(self, obj):
