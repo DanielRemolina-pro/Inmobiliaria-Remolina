@@ -42,14 +42,24 @@
 
   <!-- Page header -->
   <div style="background: var(--obsidian-2); border-bottom: 1px solid var(--border-soft); padding: 3rem 0;">
-    <div class="container">
-      <span class="section-tag" style="display:block; margin-bottom:0.5rem;">Catálogo</span>
-      <h1 style="font-family:var(--ff-display); font-size:2.8rem; font-weight:300; color:var(--ivory);">
-        Todas las propiedades
-      </h1>
-      <p style="color:var(--ivory-dimmer); margin-top:0.5rem; font-size:0.95rem;">
-        <span id="totalCount">0</span> propiedades disponibles
-      </p>
+    <div class="container" style="display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; flex-wrap:wrap;">
+      <div>
+        <span class="section-tag" style="display:block; margin-bottom:0.5rem;">Catálogo</span>
+        <h1 style="font-family:var(--ff-display); font-size:2.8rem; font-weight:300; color:var(--ivory);">
+          Todas las propiedades
+        </h1>
+        <p style="color:var(--ivory-dimmer); margin-top:0.5rem; font-size:0.95rem;">
+          <span id="totalCount">0</span> propiedades disponibles
+        </p>
+      </div>
+      <!-- Botón agregar: solo visible para is_staff, oculto por defecto -->
+      <button
+        id="btnNuevaPropiedad"
+        class="btn btn-primary oculto"
+        style="gap:0.5rem; display:flex; align-items:center;"
+        onclick="abrirModalCrear()">
+        ＋ Nueva propiedad
+      </button>
     </div>
   </div>
 
@@ -68,7 +78,8 @@
           <option value="apartamento">Apartamento</option>
           <option value="finca">Finca</option>
           <option value="lote">Lote</option>
-          <option value="almacen">Almacén</option>
+          <option value="local">Local</option>
+          <option value="bodega">Bodega</option>
         </select>
         <select class="filter-select" id="ciudadFilter">
           <option value="">Todas las ciudades</option>
@@ -110,6 +121,177 @@
   </div>
 </main>
 
+<!-- ═══════════════════════════════════════════════
+     MODAL ADMIN — Crear / Editar propiedad
+     Usa las clases modal-overlay / modal / modal-form
+     que ya existen en styles.css
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" style="max-width:720px;">
+
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Nueva propiedad</h2>
+      <button class="modal-close" id="modalClose" aria-label="Cerrar">×</button>
+    </div>
+
+    <!-- Indicador de carga del modal (mientras fetch de detalle) -->
+    <div id="modalLoader" class="oculto" style="text-align:center; padding:2rem 0; color:var(--ivory-dimmer);">
+      Cargando datos…
+    </div>
+
+    <form class="modal-form" id="adminForm" novalidate>
+
+      <!-- Fila 1: Título -->
+      <div class="form-group">
+        <label for="f_titulo">Título <span style="color:var(--gold)">*</span></label>
+        <input type="text" id="f_titulo" name="titulo" placeholder="Ej. Casa moderna en el norte" required>
+      </div>
+
+      <!-- Fila 2: Tipo / Estado -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_tipo">Tipo <span style="color:var(--gold)">*</span></label>
+          <select id="f_tipo" name="tipo" required>
+            <option value="">— Seleccionar —</option>
+            <option value="casa">Casa</option>
+            <option value="apartamento">Apartamento</option>
+            <option value="finca">Finca</option>
+            <option value="lote">Lote</option>
+            <option value="local">Local</option>
+            <option value="bodega">Bodega</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="f_estado">Estado</label>
+          <select id="f_estado" name="estado">
+            <option value="disponible">Disponible</option>
+            <option value="reservado">Reservado</option>
+            <option value="vendido">Vendido</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Fila 3: Ciudad / Sector -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_ciudad">Ciudad</label>
+          <input type="text" id="f_ciudad" name="ciudad" placeholder="Ej. Ibagué">
+        </div>
+        <div class="form-group">
+          <label for="f_ubicacion">Dirección / sector</label>
+          <input type="text" id="f_ubicacion" name="ubicacion" placeholder="Ej. Barrio El Salado">
+        </div>
+      </div>
+
+      <!-- Fila 4: Precio / Área -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_precio">Precio (COP)</label>
+          <input type="number" id="f_precio" name="precio" placeholder="Ej. 350000000" min="0">
+        </div>
+        <div class="form-group">
+          <label for="f_area">Área (m²)</label>
+          <input type="number" id="f_area" name="area" placeholder="Ej. 120" min="0" step="0.1">
+        </div>
+      </div>
+
+      <!-- Fila 5: Habitaciones / Baños -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_habitaciones">Habitaciones</label>
+          <input type="number" id="f_habitaciones" name="habitaciones" placeholder="Ej. 3" min="0">
+        </div>
+        <div class="form-group">
+          <label for="f_banos">Baños</label>
+          <input type="number" id="f_banos" name="banos" placeholder="Ej. 2" min="0">
+        </div>
+      </div>
+
+      <!-- Fila 6: Estrato / Parqueadero -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_estrato">Estrato (1–6)</label>
+          <input type="number" id="f_estrato" name="estrato" placeholder="Ej. 4" min="1" max="6">
+        </div>
+        <div class="form-group" style="justify-content:flex-end; padding-top:1.8rem;">
+          <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; color:var(--ivory-dim);">
+            <input type="checkbox" id="f_parqueadero" name="parqueadero"
+              style="width:18px; height:18px; accent-color:var(--gold); cursor:pointer;">
+            Parqueadero incluido
+          </label>
+        </div>
+      </div>
+
+      <!-- Fila 7: Fecha -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f_fecha">Fecha de publicación</label>
+          <input type="date" id="f_fecha" name="fecha">
+        </div>
+        <div></div>
+      </div>
+
+      <!-- Fila 8: Imagen URL -->
+      <div class="form-group">
+        <label for="f_imagen_url">
+          URL de imagen
+          <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300;">
+            (recomendado — pega un link directo a la foto)
+          </span>
+        </label>
+        <input type="url" id="f_imagen_url" name="imagen_url"
+          placeholder="https://ejemplo.com/foto.jpg">
+      </div>
+
+      <!-- Fila 9: Imagen archivo -->
+      <div class="form-group">
+        <label for="f_imagen">
+          O sube un archivo
+          <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300;">
+            (JPG, PNG, WEBP — máx 5 MB)
+          </span>
+        </label>
+        <input type="file" id="f_imagen" name="imagen" accept="image/*"
+          style="color:var(--ivory-dim);">
+        <!-- Preview de imagen -->
+        <div id="imgPreviewWrap" class="oculto" style="margin-top:0.75rem;">
+          <img id="imgPreview" src="" alt="Vista previa"
+            style="max-height:120px; border-radius:8px; border:1px solid var(--border);">
+        </div>
+      </div>
+
+      <!-- Nota imagen requerida (solo en crear) -->
+      <p id="imgNote" class="oculto"
+        style="font-size:0.8rem; color:var(--gold); margin-top:-0.75rem;">
+        ⚠ Para crear una propiedad debes agregar una URL de imagen o subir un archivo.
+      </p>
+
+      <!-- Fila 10: Descripción -->
+      <div class="form-group">
+        <label for="f_descripcion">Descripción</label>
+        <textarea id="f_descripcion" name="descripcion" rows="3"
+          placeholder="Describe las características principales de la propiedad…"></textarea>
+      </div>
+
+      <!-- Error general -->
+      <div id="modalError"
+        class="oculto"
+        style="background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.4);
+               border-radius:8px; padding:0.75rem 1rem; font-size:0.875rem; color:#fca5a5;">
+      </div>
+
+      <!-- Acciones -->
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="modalCancelBtn">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
+          <span id="modalSubmitLabel">Guardar propiedad</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 <!-- FAB -->
 <div id="fab-group" class="floating-actions">
   <div id="fab-items" class="fab-items oculto">
@@ -128,30 +310,33 @@
   </button>
 </div>
 
-<footer style="background: var(--obsidian-2); border-top:1px solid var(--border-soft); padding:2rem; text-align:center;">
+<footer style="background:var(--obsidian-2); border-top:1px solid var(--border-soft); padding:2rem; text-align:center;">
   <p style="font-size:0.8rem; color:var(--ivory-dimmer);">© 2026 Remolina Inmobiliaria</p>
 </footer>
 
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-// ── Constantes API ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  CONSTANTES
+// ═══════════════════════════════════════════════════════
 const API_AUTH = 'http://127.0.0.1:8000/api/auth';
 const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
 const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
 
-// ── Estado global ───────────────────────────────────────────────────────────
-let currentUser  = null;
-// FIX: favIds usa la API REST igual que index.html, reemplazando
-// el localStorage que era inconsistente entre páginas y no requería
-// autenticación real
-let favIds       = new Set();
-let propiedades  = [];
-let filtered     = [];
-let currentPage  = 1;
-const PAGE_SIZE  = 12;
+// ═══════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════
+let currentUser = null;
+let favIds      = new Set();
+let propiedades = [];
+let filtered    = [];
+let currentPage = 1;
+const PAGE_SIZE = 12;
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
 function showToast(msg, type = '') {
   const t = document.createElement('div');
   t.className = `toast ${type}`;
@@ -161,12 +346,10 @@ function showToast(msg, type = '') {
 }
 
 async function getCsrfToken() {
-  // En contexto cross-origin document.cookie no contiene cookies del dominio
-  // :8000, por eso siempre pedimos el token al endpoint y lo cacheamos.
   if (window.__csrfToken) return window.__csrfToken;
   const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
-  const data = await r.json();
-  window.__csrfToken = data.csrfToken;
+  const d = await r.json();
+  window.__csrfToken = d.csrfToken;
   return window.__csrfToken;
 }
 
@@ -184,10 +367,17 @@ function getBadgeClass(estado) {
   return { disponible: 'disponible', vendido: 'vendido', reservado: 'reservado' }[estado] || 'disponible';
 }
 
-// ── Auth + carga de favIds ──────────────────────────────────────────────────
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
 async function initAuth() {
   const navUser     = document.getElementById('navUser');
   const navLoginBtn = document.getElementById('navLoginBtn');
+
   try {
     const res = await fetch(`${API_AUTH}/me/`, { credentials: 'include' });
     if (res.ok) {
@@ -197,18 +387,20 @@ async function initAuth() {
       navUser.classList.remove('oculto');
       navLoginBtn.classList.add('oculto');
 
-      // FIX: cargar IDs de favoritos desde la API (no desde localStorage)
-      // para que el estado de los corazones sea real y consistente con
-      // el backend y con favoritos.html
+      // Mostrar botón "Nueva propiedad" solo para is_staff
+      if (currentUser.is_staff) {
+        document.getElementById('btnNuevaPropiedad').classList.remove('oculto');
+      }
+
+      // Cargar favoritos desde la API
       try {
         const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
         if (favRes.ok) {
-          const data = await favRes.json();
-          favIds = new Set(data.ids.map(String));
+          const d = await favRes.json();
+          favIds = new Set(d.ids.map(String));
         }
-      } catch {
-        favIds = new Set();
-      }
+      } catch { favIds = new Set(); }
+
     } else {
       navUser.classList.add('oculto');
       navLoginBtn.classList.remove('oculto');
@@ -219,19 +411,16 @@ async function initAuth() {
   }
 }
 
-// ── Toggle favorito via API ─────────────────────────────────────────────────
-// FIX: función unificada con la de index.html, usa API REST en lugar de
-// localStorage. Requiere sesión activa y llama al mismo endpoint.
+// ═══════════════════════════════════════════════════════
+//  TOGGLE FAVORITO
+// ═══════════════════════════════════════════════════════
 async function toggleFav(propId, btn) {
   if (!currentUser) {
     showToast('Inicia sesión para guardar favoritos');
     setTimeout(() => { window.location.href = 'login.html'; }, 1200);
     return;
   }
-
-  // FIX: deshabilitar botón para evitar doble envío
   btn.disabled = true;
-
   try {
     const csrf = await getCsrfToken();
     const res  = await fetch(`${API_FAV}/toggle/`, {
@@ -240,10 +429,9 @@ async function toggleFav(propId, btn) {
       credentials: 'include',
       body: JSON.stringify({ propiedad_id: propId }),
     });
-
     if (res.ok || res.status === 201) {
-      const data = await res.json();
-      if (data.action === 'added') {
+      const d = await res.json();
+      if (d.action === 'added') {
         favIds.add(String(propId));
         btn.textContent = '♥';
         btn.classList.add('active');
@@ -257,32 +445,49 @@ async function toggleFav(propId, btn) {
     } else {
       showToast('No se pudo actualizar favorito', 'error');
     }
-  } catch {
-    showToast('Error de conexión', 'error');
-  } finally {
-    btn.disabled = false;
-  }
+  } catch { showToast('Error de conexión', 'error'); }
+  finally { btn.disabled = false; }
 }
 
-// ── Carga de propiedades ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  CARGA DE PROPIEDADES
+// ═══════════════════════════════════════════════════════
 async function cargarPropiedades() {
   try {
-    const res  = await fetch(`${API_PROP}/?page_size=1000`, { credentials: 'include' });
-    const data = await res.json();
-    const lista = Array.isArray(data) ? data : (data.results || []);
+    // Obtiene todas las páginas en paralelo o en secuencia
+    // Primer fetch para saber cuántas hay
+    const primera = await fetch(`${API_PROP}/?page=1`, { credentials: 'include' });
+    const d1      = await primera.json();
+    const total   = d1.count || 0;
+    const results = [...(d1.results || [])];
 
-    propiedades = lista.map(p => ({
-      id:       p.id,
-      titulo:   p.titulo,
-      precio:   p.precio,
+    // Si hay más páginas, cargarlas
+    const totalPaginas = Math.ceil(total / 12);
+    if (totalPaginas > 1) {
+      const promesas = [];
+      for (let p = 2; p <= totalPaginas; p++) {
+        promesas.push(
+          fetch(`${API_PROP}/?page=${p}`, { credentials: 'include' })
+            .then(r => r.json())
+            .then(d => d.results || [])
+        );
+      }
+      const resto = await Promise.all(promesas);
+      resto.forEach(r => results.push(...r));
+    }
+
+    propiedades = results.map(p => ({
+      id:          p.id,
+      titulo:      p.titulo,
+      precio:      p.precio,
       descripcion: p.descripcion,
-      tipo:     p.tipo,
-      ciudad:   p.ciudad,
-      ubicacion: p.ubicacion || '',
-      area:     p.area,
-      estado:   p.estado,
-      fecha:    p.fecha,
-      img:      p.imagen_display || p.imagen_url || 'videos/dani.png',
+      tipo:        p.tipo,
+      ciudad:      p.ciudad,
+      ubicacion:   p.ubicacion || '',
+      area:        p.area,
+      estado:      p.estado || 'disponible',
+      fecha:       p.fecha,
+      img:         p.imagen_display || p.imagen_url || 'videos/dani.png',
     }));
 
     applyFilters();
@@ -292,7 +497,9 @@ async function cargarPropiedades() {
   }
 }
 
-// ── Filtros ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  FILTROS
+// ═══════════════════════════════════════════════════════
 function applyFilters() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const tipo   = document.getElementById('tipoFilter').value;
@@ -302,26 +509,28 @@ function applyFilters() {
   const max    = parseFloat(document.getElementById('precioMax').value) || Infinity;
 
   filtered = propiedades.filter(p => {
-    const matchText   = !search ||
-      p.titulo.toLowerCase().includes(search) ||
-      (p.ubicacion || '').toLowerCase().includes(search) ||
-      (p.tipo || '').toLowerCase().includes(search);
+    const matchText   = !search
+      || p.titulo.toLowerCase().includes(search)
+      || (p.ubicacion || '').toLowerCase().includes(search)
+      || (p.tipo     || '').toLowerCase().includes(search);
     const matchTipo   = !tipo   || p.tipo === tipo;
-    const matchCiudad = !ciudad || p.ciudad === ciudad;
+    const matchCiudad = !ciudad || (p.ciudad || '').toLowerCase().includes(ciudad.toLowerCase());
     const matchPrecio = (p.precio == null) ? true : (p.precio >= min && p.precio <= max);
     return matchText && matchTipo && matchCiudad && matchPrecio;
   });
 
-  if (orden === 'precio-asc')  filtered.sort((a, b) => a.precio - b.precio);
-  else if (orden === 'precio-desc') filtered.sort((a, b) => b.precio - a.precio);
-  else if (orden === 'area-desc')   filtered.sort((a, b) => b.area - a.area);
-  else if (orden === 'reciente')    filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  if (orden === 'precio-asc')  filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
+  if (orden === 'precio-desc') filtered.sort((a, b) => (b.precio || 0) - (a.precio || 0));
+  if (orden === 'area-desc')   filtered.sort((a, b) => (b.area || 0) - (a.area || 0));
+  if (orden === 'reciente')    filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   currentPage = 1;
   render();
 }
 
-// ── Render ──────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
 function render() {
   const grid  = document.getElementById('propiedadesGrid');
   const empty = document.getElementById('emptyState');
@@ -339,10 +548,6 @@ function render() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const page  = filtered.slice(start, start + PAGE_SIZE);
 
-  // FIX: en lugar de innerHTML con strings (que no permite añadir
-  // event listeners correctamente en los botones de fav), se construye
-  // cada card con createElement para poder adjuntar listeners con referencias
-  // directas al botón real del DOM
   grid.innerHTML = '';
   page.forEach(p => {
     const isFav = favIds.has(String(p.id));
@@ -354,7 +559,7 @@ function render() {
         <img src="${p.img}" alt="${p.titulo}" loading="lazy"
              onerror="this.src='videos/dani.png'">
         <span class="card-badge ${getBadgeClass(p.estado)}">
-          ${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+          ${capitalize(p.estado)}
         </span>
         <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
           ${isFav ? '♥' : '♡'}
@@ -362,36 +567,41 @@ function render() {
       </div>
       <div class="card-body">
         <div class="card-type">
-          ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'} • ${p.ciudad || ''}
+          ${capitalize(p.tipo || 'Inmueble')}${p.ciudad ? ' · ' + p.ciudad : ''}
         </div>
         <h3 class="card-title">${p.titulo}</h3>
         <div class="card-location">📍 ${p.ciudad || 'Ibagué'}, Tolima</div>
         <div class="card-price">${formatPrecio(p.precio)}</div>
         <div class="card-features">
-          <span>Área: ${formatArea(p.area)}${p.ubicacion ? ' | ' + p.ubicacion : ''}</span>
+          <span>Área: ${formatArea(p.area)}${p.ubicacion ? ' · ' + p.ubicacion : ''}</span>
         </div>
         <div class="card-actions">
           <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
           <a href="index.html#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
           ${currentUser?.is_staff ? `
-          <button class="btn btn-sm" style="background:#d97706;color:#fff;" data-edit="${p.id}">✏ Editar</button>
-          <button class="btn btn-sm" style="background:#dc2626;color:#fff;" data-delete="${p.id}">🗑 Eliminar</button>
+            <button class="btn btn-sm btn-edit" data-edit="${p.id}"
+              style="background:rgba(217,119,6,0.15); color:#fbbf24;
+                     border:1px solid rgba(217,119,6,0.35);">
+              ✏ Editar
+            </button>
+            <button class="btn btn-sm btn-delete" data-delete="${p.id}"
+              style="background:rgba(220,38,38,0.12); color:#fca5a5;
+                     border:1px solid rgba(220,38,38,0.3);">
+              🗑 Eliminar
+            </button>
           ` : ''}
         </div>
       </div>`;
 
-    // FIX: listener en el botón real del DOM (no innerHTML string)
-    card.querySelector('.card-fav').addEventListener('click', (e) => {
-      toggleFav(p.id, e.currentTarget);
-    });
+    // Listeners
+    card.querySelector('.card-fav')
+      .addEventListener('click', e => toggleFav(p.id, e.currentTarget));
 
-    // Botones de admin si aplica
-    card.querySelector('[data-edit]')?.addEventListener('click', () => {
-      window.location.href = `detalle.html?id=${p.id}&modo=editar`;
-    });
-    card.querySelector('[data-delete]')?.addEventListener('click', (e) => {
-      eliminarPropiedad(p.id, e.currentTarget);
-    });
+    card.querySelector('[data-edit]')
+      ?.addEventListener('click', () => abrirModalEditar(p.id));
+
+    card.querySelector('[data-delete]')
+      ?.addEventListener('click', e => eliminarPropiedad(p.id, e.currentTarget));
 
     grid.appendChild(card);
   });
@@ -403,55 +613,280 @@ function render() {
   pg.innerHTML = Array.from({ length: totalPages }, (_, i) => i + 1).map(n =>
     `<button class="page-btn ${n === currentPage ? 'active' : ''}" data-page="${n}">${n}</button>`
   ).join('');
-  pg.querySelectorAll('.page-btn').forEach(btn => {
+  pg.querySelectorAll('.page-btn').forEach(btn =>
     btn.addEventListener('click', () => {
       currentPage = parseInt(btn.dataset.page);
       render();
       window.scrollTo({ top: 300, behavior: 'smooth' });
-    });
-  });
+    })
+  );
 }
 
-// ── Administración (solo is_staff) ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  ELIMINAR PROPIEDAD
+// ═══════════════════════════════════════════════════════
 async function eliminarPropiedad(id, btn) {
-  if (!confirm('¿Seguro que deseas eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
+  if (!confirm('¿Seguro que deseas eliminar esta propiedad?\nEsta acción no se puede deshacer.')) return;
+  btn.disabled = true;
   try {
     const csrf = await getCsrfToken();
-    const res = await fetch(`${API_PROP}/${id}/`, {
+    const res  = await fetch(`${API_PROP}/${id}/`, {
       method: 'DELETE',
       headers: { 'X-CSRFToken': csrf },
       credentials: 'include',
     });
     if (res.status === 204) {
-      btn.closest('.propiedad-card').remove();
       propiedades = propiedades.filter(p => p.id !== id);
       filtered    = filtered.filter(p => p.id !== id);
       document.getElementById('totalCount').textContent = filtered.length;
-      showToast('Propiedad eliminada.', 'success');
+      btn.closest('.propiedad-card').remove();
+      showToast('Propiedad eliminada correctamente.', 'success');
     } else {
-      const err = await res.json();
-      showToast(err.error || 'Error al eliminar.', 'error');
+      const err = await res.json().catch(() => ({}));
+      showToast(err.detail || err.error || 'Error al eliminar.', 'error');
     }
-  } catch {
-    showToast('Error de conexión.', 'error');
-  }
+  } catch { showToast('Error de conexión.', 'error'); }
+  finally { btn.disabled = false; }
 }
 
-// ── Listeners de filtros ────────────────────────────────────────────────────
-['searchInput', 'tipoFilter', 'ciudadFilter', 'ordenFilter', 'precioMin', 'precioMax'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input',  applyFilters);
-  document.getElementById(id)?.addEventListener('change', applyFilters);
+// ═══════════════════════════════════════════════════════
+//  MODAL — lógica compartida
+// ═══════════════════════════════════════════════════════
+const overlay  = document.getElementById('adminModal');
+const form     = document.getElementById('adminForm');
+const loader   = document.getElementById('modalLoader');
+let   editId   = null; // null = crear, number = editar
+
+function abrirModal() {
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  editId = null;
+  form.reset();
+  document.getElementById('imgPreviewWrap').classList.add('oculto');
+  document.getElementById('imgNote').classList.add('oculto');
+  document.getElementById('modalError').classList.add('oculto');
+  document.getElementById('modalError').textContent = '';
+  loader.classList.add('oculto');
+  form.classList.remove('oculto');
+  document.getElementById('modalSubmitBtn').disabled = false;
+  document.getElementById('modalSubmitLabel').textContent = 'Guardar propiedad';
+}
+
+document.getElementById('modalClose').addEventListener('click', cerrarModal);
+document.getElementById('modalCancelBtn').addEventListener('click', cerrarModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) cerrarModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+
+// ─── Crear ───────────────────────────────────────────
+window.abrirModalCrear = function () {
+  cerrarModal();           // limpia estado anterior
+  editId = null;
+  document.getElementById('modalTitle').textContent = 'Nueva propiedad';
+  document.getElementById('modalSubmitLabel').textContent = 'Crear propiedad';
+  document.getElementById('imgNote').classList.remove('oculto');
+  // Fecha de hoy por defecto
+  document.getElementById('f_fecha').value = new Date().toISOString().slice(0, 10);
+  abrirModal();
+};
+
+// ─── Editar ──────────────────────────────────────────
+async function abrirModalEditar(id) {
+  cerrarModal();
+  editId = id;
+  document.getElementById('modalTitle').textContent = 'Editar propiedad';
+  document.getElementById('modalSubmitLabel').textContent = 'Guardar cambios';
+  document.getElementById('imgNote').classList.add('oculto');
+
+  // Mostrar loader mientras se obtiene el detalle
+  loader.classList.remove('oculto');
+  form.classList.add('oculto');
+  abrirModal();
+
+  try {
+    const res = await fetch(`${API_PROP}/${id}/`, { credentials: 'include' });
+    if (!res.ok) throw new Error('No se pudo cargar la propiedad.');
+    const p = await res.json();
+
+    // Rellenar campos
+    document.getElementById('f_titulo').value       = p.titulo        || '';
+    document.getElementById('f_tipo').value         = p.tipo          || '';
+    document.getElementById('f_estado').value       = p.estado        || 'disponible';
+    document.getElementById('f_ciudad').value       = p.ciudad        || '';
+    document.getElementById('f_ubicacion').value    = p.ubicacion     || '';
+    document.getElementById('f_precio').value       = p.precio        ?? '';
+    document.getElementById('f_area').value         = p.area          ?? '';
+    document.getElementById('f_habitaciones').value = p.habitaciones  ?? '';
+    document.getElementById('f_banos').value        = p.banos         ?? '';
+    document.getElementById('f_estrato').value      = p.estrato       ?? '';
+    document.getElementById('f_parqueadero').checked = !!p.parqueadero;
+    document.getElementById('f_imagen_url').value   = p.imagen_url    || '';
+    document.getElementById('f_descripcion').value  = p.descripcion   || '';
+    document.getElementById('f_fecha').value        = p.fecha         || '';
+
+    // Preview de imagen existente
+    const imgSrc = p.imagen_display || p.imagen_url;
+    if (imgSrc) {
+      document.getElementById('imgPreview').src = imgSrc;
+      document.getElementById('imgPreviewWrap').classList.remove('oculto');
+    }
+
+  } catch (err) {
+    cerrarModal();
+    showToast(err.message || 'Error al cargar propiedad.', 'error');
+    return;
+  }
+
+  loader.classList.add('oculto');
+  form.classList.remove('oculto');
+}
+
+// ─── Preview imagen al seleccionar archivo ────────────
+document.getElementById('f_imagen').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('imgPreview').src = ev.target.result;
+    document.getElementById('imgPreviewWrap').classList.remove('oculto');
+  };
+  reader.readAsDataURL(file);
 });
-document.getElementById('clearFilters').addEventListener('click', () => {
-  ['searchInput', 'tipoFilter', 'ciudadFilter', 'ordenFilter', 'precioMin', 'precioMax'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
+
+// ─── Submit del formulario ────────────────────────────
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const submitBtn   = document.getElementById('modalSubmitBtn');
+  const submitLabel = document.getElementById('modalSubmitLabel');
+  const errorBox    = document.getElementById('modalError');
+  errorBox.classList.add('oculto');
+  errorBox.textContent = '';
+
+  // Validación básica frontend
+  const titulo = document.getElementById('f_titulo').value.trim();
+  const tipo   = document.getElementById('f_tipo').value;
+  if (!titulo) { mostrarErrorModal('El título es obligatorio.'); return; }
+  if (!tipo)   { mostrarErrorModal('Selecciona un tipo de propiedad.'); return; }
+
+  // Validación imagen en creación
+  const imagenUrl  = document.getElementById('f_imagen_url').value.trim();
+  const imagenFile = document.getElementById('f_imagen').files[0];
+  if (!editId && !imagenUrl && !imagenFile) {
+    mostrarErrorModal('Para crear una propiedad debes agregar una URL de imagen o subir un archivo.');
+    return;
+  }
+
+  // Construir FormData
+  // (Multipart porque puede incluir archivo; el backend acepta MultiPartParser)
+  const fd = new FormData();
+
+  // Campos de texto — solo enviar si tienen valor
+  const campos = [
+    ['titulo',       document.getElementById('f_titulo').value.trim()],
+    ['tipo',         document.getElementById('f_tipo').value],
+    ['estado',       document.getElementById('f_estado').value],
+    ['ciudad',       document.getElementById('f_ciudad').value.trim()],
+    ['ubicacion',    document.getElementById('f_ubicacion').value.trim()],
+    ['precio',       document.getElementById('f_precio').value],
+    ['area',         document.getElementById('f_area').value],
+    ['habitaciones', document.getElementById('f_habitaciones').value],
+    ['banos',        document.getElementById('f_banos').value],
+    ['estrato',      document.getElementById('f_estrato').value],
+    ['imagen_url',   imagenUrl],
+    ['descripcion',  document.getElementById('f_descripcion').value.trim()],
+    ['fecha',        document.getElementById('f_fecha').value],
+  ];
+  campos.forEach(([key, val]) => { if (val !== '' && val !== null) fd.append(key, val); });
+
+  // Parqueadero: siempre enviar (true/false)
+  fd.append('parqueadero', document.getElementById('f_parqueadero').checked ? 'true' : 'false');
+
+  // Archivo de imagen: solo si se seleccionó uno nuevo
+  if (imagenFile) fd.append('imagen', imagenFile);
+
+  // Deshabilitar botón y mostrar estado
+  submitBtn.disabled = true;
+  submitLabel.textContent = editId ? 'Guardando…' : 'Creando…';
+
+  try {
+    const csrf   = await getCsrfToken();
+    const url    = editId ? `${API_PROP}/${editId}/` : `${API_PROP}/`;
+    const method = editId ? 'PATCH' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'X-CSRFToken': csrf },
+      // NO incluir 'Content-Type': el browser lo pone automáticamente con el boundary correcto
+      credentials: 'include',
+      body: fd,
+    });
+
+    if (res.ok || res.status === 201) {
+      const prop = await res.json();
+      showToast(
+        editId ? '✅ Propiedad actualizada correctamente.' : '✅ Propiedad creada correctamente.',
+        'success'
+      );
+      cerrarModal();
+
+      // Refrescar la lista para reflejar los cambios
+      await cargarPropiedades();
+
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      mostrarErrorModal(parsearErrores(errData));
+    }
+
+  } catch (err) {
+    mostrarErrorModal('Error de conexión con el servidor.');
+  } finally {
+    submitBtn.disabled = false;
+    submitLabel.textContent = editId ? 'Guardar cambios' : 'Crear propiedad';
+  }
+});
+
+function mostrarErrorModal(msg) {
+  const errorBox = document.getElementById('modalError');
+  errorBox.textContent = msg;
+  errorBox.classList.remove('oculto');
+  errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function parsearErrores(data) {
+  if (typeof data === 'string') return data;
+  if (data.detail) return data.detail;
+  // DRF devuelve { campo: ["mensaje"] }
+  const msgs = Object.entries(data).map(([campo, errs]) => {
+    const e = Array.isArray(errs) ? errs.join(' ') : errs;
+    return `${campo}: ${e}`;
   });
+  return msgs.join('\n') || 'Error al guardar la propiedad.';
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILTROS — listeners
+// ═══════════════════════════════════════════════════════
+['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
+  const el = document.getElementById(id);
+  el?.addEventListener('input',  applyFilters);
+  el?.addEventListener('change', applyFilters);
+});
+
+document.getElementById('clearFilters').addEventListener('click', () => {
+  ['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   applyFilters();
 });
 
-// ── Logout ──────────────────────────────────────────────────────────────────
-document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+// ═══════════════════════════════════════════════════════
+//  LOGOUT
+// ═══════════════════════════════════════════════════════
+document.getElementById('navLogout')?.addEventListener('click', async e => {
   e.preventDefault();
   const csrf = await getCsrfToken();
   await fetch(`${API_AUTH}/logout/`, {
@@ -462,32 +897,38 @@ document.getElementById('navLogout')?.addEventListener('click', async (e) => {
   window.location.reload();
 });
 
-// ── FAB ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  FAB
+// ═══════════════════════════════════════════════════════
 const fabMain  = document.getElementById('fab-main');
 const fabItems = document.getElementById('fab-items');
 fabMain.addEventListener('click', () => {
   fabItems.classList.toggle('oculto');
   fabMain.classList.toggle('open');
 });
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
   if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
     fabItems.classList.add('oculto');
     fabMain.classList.remove('open');
   }
 });
 
-// ── Hamburger ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  HAMBURGER
+// ═══════════════════════════════════════════════════════
 document.getElementById('navHamburger').addEventListener('click', () => {
   document.getElementById('navMenu').classList.toggle('open');
 });
 
-// ── URL params ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  URL PARAMS
+// ═══════════════════════════════════════════════════════
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlParams.get('tipo');
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-// FIX: auth primero para tener favIds antes de renderizar,
-// luego carga de propiedades
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
 (async () => {
   await initAuth();
   await cargarPropiedades();
