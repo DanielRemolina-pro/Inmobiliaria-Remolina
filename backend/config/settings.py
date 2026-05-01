@@ -108,10 +108,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # En desarrollo permitimos todos los orígenes para facilitar las pruebas
 CORS_ALLOW_ALL_ORIGINS  = True
 CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SAMESITE    = None
+SESSION_COOKIE_SAMESITE = None
+CSRF_COOKIE_SECURE      = False
+SESSION_COOKIE_SECURE   = False
 
-# En producción reemplaza las dos líneas de arriba por:
+# En producción reemplaza las siguientes líneas por valores seguros:
 # CORS_ALLOW_ALL_ORIGINS = False
 # CORS_ALLOWED_ORIGINS = ['https://tu-dominio.com']
+# CSRF_COOKIE_SAMESITE = 'Lax'
+# SESSION_COOKIE_SAMESITE = 'Lax'
 
 # ── Django REST Framework ─────────────────────────────────────────────────────
 REST_FRAMEWORK = {
