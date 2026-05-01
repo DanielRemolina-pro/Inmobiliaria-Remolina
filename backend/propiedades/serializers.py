@@ -4,18 +4,19 @@ propiedades/serializers.py
 Serializers para la API de Remolina Inmobiliaria.
 
 Estructura:
-  - RegistroSerializer      → creación de usuario
+  - RegistroSerializer       → creación de usuario
   - CambioPasswordSerializer → cambio de contraseña autenticado
-  - PerfilSerializer        → lectura/escritura del perfil propio
-  - PropiedadListSerializer → lista compacta (menos campos, más rápida)
-  - PropiedadSerializer     → detalle completo (lectura + escritura)
+  - PerfilSerializer         → lectura/escritura del perfil propio
+  - PropiedadListSerializer  → lista compacta (menos campos, más rápida)
+  - PropiedadSerializer      → detalle completo (lectura + escritura)
+  - FavoritoSerializer       → favoritos del usuario autenticado
 """
 
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import PerfilUsuario, Propiedad
+from .models import Favorito, PerfilUsuario, Propiedad
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -40,7 +41,7 @@ class RegistroSerializer(serializers.Serializer):
         return value
 
     def validate_password(self, value):
-        validate_password(value)   # aplica los validadores de Django
+        validate_password(value)
         return value
 
     def create(self, validated_data):
@@ -48,7 +49,6 @@ class RegistroSerializer(serializers.Serializer):
         email    = validated_data['email']
         password = validated_data['password']
 
-        # Username único derivado del email
         base = email.split('@')[0]
         username, counter = base, 1
         while User.objects.filter(username=username).exists():
@@ -140,8 +140,6 @@ class PerfilSerializer(serializers.ModelSerializer):
 #  PROPIEDAD SERIALIZERS
 # ══════════════════════════════════════════════════════════════════════════════
 
-imagen_display = serializers.SerializerMethodField()
-
 class PropiedadListSerializer(serializers.ModelSerializer):
     imagen_display = serializers.SerializerMethodField()
 
@@ -149,33 +147,24 @@ class PropiedadListSerializer(serializers.ModelSerializer):
         model = Propiedad
         fields = (
             'id', 'titulo', 'precio', 'tipo', 'estado',
-            'ciudad', 'area',
+            'ciudad', 'area', 'habitaciones', 'banos',
             'imagen_display',
         )
 
     def get_imagen_display(self, obj):
         request = self.context.get('request')
-
         if obj.imagen:
             return request.build_absolute_uri(obj.imagen.url) if request else obj.imagen.url
-
         if obj.imagen_url:
             return obj.imagen_url
-
         return None
+
 
 class PropiedadSerializer(serializers.ModelSerializer):
     """
     Serializer completo para creación, edición y detalle de propiedad.
-
-    - imagen: campo de escritura (upload de archivo)
-    - imagen_display: campo de lectura (URL absoluta de la imagen)
-    - Validaciones de negocio centralizadas en validate_*
     """
-    # Campo de lectura: URL absoluta de la imagen
     imagen_display = serializers.SerializerMethodField(read_only=True)
-
-    # Campo de escritura: acepta archivo
     imagen = serializers.ImageField(required=False, allow_null=True, write_only=False)
 
     class Meta:
@@ -188,21 +177,13 @@ class PropiedadSerializer(serializers.ModelSerializer):
             'fecha',
         )
 
-
-
     def get_imagen_display(self, obj):
         request = self.context.get('request')
-
         if obj.imagen:
             return request.build_absolute_uri(obj.imagen.url) if request else obj.imagen.url
-
         if obj.imagen_url:
             return obj.imagen_url
-
         return None
-
-
-    # ── Validaciones de negocio ───────────────────────────────────────────────
 
     def validate_precio(self, value):
         if value is not None and value < 0:
@@ -220,12 +201,44 @@ class PropiedadSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """Validación cruzada: si no hay imagen de archivo, debe haber imagen_url."""
         imagen     = attrs.get('imagen')
         imagen_url = attrs.get('imagen_url')
-        # Solo validar en creación (no en PATCH parcial)
         if self.instance is None and not imagen and not imagen_url:
             raise serializers.ValidationError(
                 {'imagen': 'Debes proporcionar una imagen de archivo o una URL de imagen.'}
             )
         return attrs
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  FAVORITO SERIALIZER
+# ══════════════════════════════════════════════════════════════════════════════
+
+class FavoritoSerializer(serializers.ModelSerializer):
+    """
+    Serializer para la lista de favoritos del usuario.
+    Incluye el detalle completo de la propiedad anidada (solo lectura).
+    """
+    propiedad = PropiedadListSerializer(read_only=True)
+    propiedad_id = serializers.PrimaryKeyRelatedField(
+        queryset=Propiedad.objects.all(),
+        source='propiedad',
+        write_only=True,
+    )
+
+    class Meta:
+        model  = Favorito
+        fields = ('id', 'propiedad', 'propiedad_id', 'creado')
+        read_only_fields = ('id', 'creado')
+
+    def validate(self, attrs):
+        """Previene duplicados a nivel de serializer (la BD también lo garantiza)."""
+        usuario   = self.context['request'].user
+        propiedad = attrs['propiedad']
+        if Favorito.objects.filter(usuario=usuario, propiedad=propiedad).exists():
+            raise serializers.ValidationError('Esta propiedad ya está en tus favoritos.')
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['usuario'] = self.context['request'].user
+        return super().create(validated_data)

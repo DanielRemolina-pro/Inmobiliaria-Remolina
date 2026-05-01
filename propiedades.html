@@ -189,29 +189,34 @@ if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlPara
 
 async function cargarPropiedades() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/propiedades/");
+    // Pedir TODAS las propiedades sin paginación del servidor
+    // usando el endpoint ?page_size=1000, o usar el nuevo endpoint /destacadas/ para el home
+    const res = await fetch("http://127.0.0.1:8000/api/propiedades/?page_size=1000");
     const data = await res.json();
-    console.log("DATA API:", data); 
 
-    propiedades = data.map(p => ({
+    // Con paginación el backend devuelve { count, next, previous, results: [...] }
+    // Sin paginación (lista plana) devuelve directamente el array
+    const lista = Array.isArray(data) ? data : (data.results || []);
+
+    propiedades = lista.map(p => ({
       id: p.id,
       titulo: p.titulo,
       precio: p.precio,
       descripcion: p.descripcion,
-      tipo: p.tipo, //temporal (modelo aún simple)
+      tipo: p.tipo,
       ciudad: p.ciudad,
       ubicacion: p.ubicacion,
       area: p.area,
       estado: p.estado,
       fecha: p.fecha,
-      img: p.imagen 
-        ? "http://127.0.0.1:8000" + p.imagen
-        : p.imagen_url 
+      img: p.imagen_display  
+        ? p.imagen_display
+        : p.imagen_url
           ? p.imagen_url
           : "videos/dani.png"
     }));
 
-    applyFilters(); //esto renderiza todo
+    applyFilters();
   } catch (err) {
     console.error("Error cargando propiedades:", err);
   }

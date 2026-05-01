@@ -3,19 +3,10 @@ propiedades/views.py
 ====================
 ViewSets para la API REST de Remolina Inmobiliaria.
 
-Migración de @api_view → ModelViewSet / ViewSet
------------------------------------------------
-  PropiedadViewSet   — CRUD completo de propiedades con filtros, búsqueda,
-                       ordenamiento y paginación automática.
-  AuthViewSet        — Registro, login, logout, perfil y cambio de contraseña.
-
-Ventajas frente a @api_view:
-  ✔ Router genera todas las URLs automáticamente
-  ✔ CRUD completo con menos código (ModelViewSet)
-  ✔ Acciones extra (@action) para endpoints especiales
-  ✔ Permisos, parsers y filtros declarados por clase
-  ✔ Paginación integrada en list()
-  ✔ DRF Spectacular genera la documentación OpenAPI automáticamente
+  PropiedadViewSet  — CRUD completo de propiedades con filtros,
+                      búsqueda, ordenamiento y paginación automática.
+  AuthViewSet       — Registro, login, logout, perfil y cambio de contraseña.
+  FavoritoViewSet   — Gestión de favoritos del usuario autenticado.
 """
 
 from django.contrib.auth import authenticate, login, logout
@@ -31,10 +22,11 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from .filters import PropiedadFilter
-from .models import Propiedad
+from .models import Favorito, Propiedad
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from .serializers import (
     CambioPasswordSerializer,
+    FavoritoSerializer,
     PerfilSerializer,
     PropiedadListSerializer,
     PropiedadSerializer,
@@ -72,29 +64,16 @@ class PropiedadViewSet(viewsets.ModelViewSet):
 
     list / retrieve  → AllowAny (público)
     create / update / destroy → IsAdminOrReadOnly (is_staff)
-
-    Filtros disponibles (query params):
-        tipo, estado, ciudad, precio_min, precio_max,
-        area_min, area_max, habitaciones, banos, estrato, parqueadero
-    Búsqueda libre:
-        search=  (busca en título, descripción, ciudad, ubicación)
-    Ordenamiento:
-        ordering=precio | -precio | area | -fecha
     """
-
-    queryset         = Propiedad.objects.all()
+    queryset           = Propiedad.objects.all()
     permission_classes = [IsAdminOrReadOnly]
-    parser_classes   = [MultiPartParser, FormParser, JSONParser]
-    filterset_class  = PropiedadFilter
-    search_fields    = ['titulo', 'descripcion', 'ciudad', 'ubicacion']
-    ordering_fields  = ['precio', 'area', 'fecha', 'id', 'estrato']
-    ordering         = ['-id']                # orden por defecto
+    parser_classes     = [MultiPartParser, FormParser, JSONParser]
+    filterset_class    = PropiedadFilter
+    search_fields      = ['titulo', 'descripcion', 'ciudad', 'ubicacion']
+    ordering_fields    = ['precio', 'area', 'fecha', 'id', 'estrato']
+    ordering           = ['-id']
 
     def get_serializer_class(self):
-        """
-        Usa el serializer compacto para list() y el completo para el resto.
-        Reduce payload en la lista y mantiene todos los campos en detalle/escritura.
-        """
         if self.action == 'list':
             return PropiedadListSerializer
         return PropiedadSerializer
@@ -105,7 +84,7 @@ class PropiedadViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=['get'], url_path='destacadas', permission_classes=[AllowAny])
     def destacadas(self, request):
-        """GET /api/propiedades/destacadas/ — sin paginación, para el carousel del home."""
+        """GET /api/propiedades/destacadas/ — sin paginación, para el home."""
         qs = Propiedad.objects.filter(estado='disponible').order_by('-id')[:6]
         serializer = PropiedadListSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
@@ -117,7 +96,7 @@ class PropiedadViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='stats',
             permission_classes=[IsAuthenticated])
     def stats(self, request):
-        """GET /api/propiedades/stats/ — solo para usuarios autenticados (is_staff en producción)."""
+        """GET /api/propiedades/stats/"""
         from django.db.models import Count, Avg
 
         por_tipo   = Propiedad.objects.values('tipo').annotate(total=Count('id'))
@@ -125,11 +104,124 @@ class PropiedadViewSet(viewsets.ModelViewSet):
         precio_avg = Propiedad.objects.aggregate(promedio=Avg('precio'))
 
         return Response({
-            'total':         Propiedad.objects.count(),
+            'total':           Propiedad.objects.count(),
             'precio_promedio': precio_avg['promedio'],
-            'por_tipo':      list(por_tipo),
-            'por_estado':    list(por_estado),
+            'por_tipo':        list(por_tipo),
+            'por_estado':      list(por_estado),
         })
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  FAVORITO VIEWSET
+# ══════════════════════════════════════════════════════════════════════════════
+
+class FavoritoViewSet(viewsets.ViewSet):
+    """
+    Gestión de favoritos del usuario autenticado.
+
+    Endpoints:
+        GET    /api/favoritos/              → listar mis favoritos
+        POST   /api/favoritos/              → agregar propiedad a favoritos
+        DELETE /api/favoritos/{id}/         → quitar favorito por ID de favorito
+        DELETE /api/favoritos/propiedad/{prop_id}/ → quitar por ID de propiedad
+        GET    /api/favoritos/ids/          → solo los IDs de propiedades favoritas
+                                              (útil para marcar ♥ en cards del index)
+
+    Todos requieren autenticación.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(summary='Listar mis favoritos')
+    def list(self, request):
+        """GET /api/favoritos/ — devuelve favoritos con detalle de propiedad."""
+        favoritos  = Favorito.objects.filter(usuario=request.user).select_related('propiedad')
+        serializer = FavoritoSerializer(favoritos, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @extend_schema(summary='Agregar a favoritos', request=FavoritoSerializer)
+    def create(self, request):
+        """POST /api/favoritos/  body: { propiedad_id: <int> }"""
+        serializer = FavoritoSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        favorito = serializer.save()
+        return Response(
+            FavoritoSerializer(favorito, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(summary='Quitar favorito por ID de favorito')
+    def destroy(self, request, pk=None):
+        """DELETE /api/favoritos/{id}/"""
+        try:
+            favorito = Favorito.objects.get(pk=pk, usuario=request.user)
+        except Favorito.DoesNotExist:
+            return Response(
+                {'error': 'Favorito no encontrado.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        favorito.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(summary='Quitar favorito por ID de propiedad')
+    @action(detail=False, methods=['delete'], url_path=r'propiedad/(?P<prop_id>\d+)')
+    def quitar_por_propiedad(self, request, prop_id=None):
+        """DELETE /api/favoritos/propiedad/{prop_id}/ — más cómodo para el frontend."""
+        eliminados, _ = Favorito.objects.filter(
+            usuario=request.user,
+            propiedad_id=prop_id,
+        ).delete()
+        if eliminados == 0:
+            return Response(
+                {'error': 'Esta propiedad no estaba en tus favoritos.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(
+        summary='IDs de propiedades favoritas',
+        description='Devuelve solo la lista de IDs. Útil para marcar ♥ en cards sin cargar todo el detalle.',
+    )
+    @action(detail=False, methods=['get'], url_path='ids')
+    def ids(self, request):
+        """GET /api/favoritos/ids/ → { ids: [1, 5, 12, ...] }"""
+        ids = Favorito.objects.filter(
+            usuario=request.user
+        ).values_list('propiedad_id', flat=True)
+        return Response({'ids': list(ids)})
+
+    @extend_schema(summary='Toggle favorito (agregar/quitar en un solo endpoint)')
+    @action(detail=False, methods=['post'], url_path='toggle')
+    def toggle(self, request):
+        """
+        POST /api/favoritos/toggle/  body: { propiedad_id: <int> }
+        Si la propiedad ya es favorita la quita; si no, la agrega.
+        Responde con { action: 'added'|'removed', favorito_id: <int>|null }
+        """
+        prop_id = request.data.get('propiedad_id')
+        if not prop_id:
+            return Response(
+                {'error': 'propiedad_id es requerido.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            propiedad = Propiedad.objects.get(pk=prop_id)
+        except Propiedad.DoesNotExist:
+            return Response(
+                {'error': 'Propiedad no encontrada.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        favorito = Favorito.objects.filter(usuario=request.user, propiedad=propiedad).first()
+        if favorito:
+            favorito.delete()
+            return Response({'action': 'removed', 'favorito_id': None})
+        else:
+            nuevo = Favorito.objects.create(usuario=request.user, propiedad=propiedad)
+            return Response(
+                {'action': 'added', 'favorito_id': nuevo.pk},
+                status=status.HTTP_201_CREATED,
+            )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -140,35 +232,25 @@ class AuthViewSet(viewsets.ViewSet):
     """
     ViewSet de autenticación.
 
-    Endpoints generados por el router:
-        GET  /api/auth/csrf/         → csrf_token
-        POST /api/auth/registro/     → registro
-        POST /api/auth/login/        → iniciar_sesion
-        POST /api/auth/logout/       → cerrar_sesion
-        GET  /api/auth/me/           → mi_perfil
-        PATCH/PUT /api/auth/me/      → editar_perfil   (action extra)
-        POST /api/auth/cambiar-password/ → cambiar_password
-
-    Todos son @action sobre el mismo ViewSet → un único prefijo /api/auth/
+    Endpoints:
+        GET  /api/auth/csrf/
+        POST /api/auth/registro/
+        POST /api/auth/login/
+        POST /api/auth/logout/
+        GET  /api/auth/me/
+        PATCH/PUT /api/auth/me/editar/
+        POST /api/auth/cambiar-password/
     """
-
-    # Permiso por defecto; se sobreescribe por acción
     permission_classes = [AllowAny]
 
-    # ── CSRF ─────────────────────────────────────────────────────────────────
-
-    @extend_schema(summary='Obtener CSRF token', description='Devuelve el token CSRF necesario para requests POST desde el frontend.')
+    @extend_schema(summary='Obtener CSRF token')
     @action(detail=False, methods=['get'], url_path='csrf')
     def csrf_token(self, request):
-        """GET /api/auth/csrf/"""
         return Response({'csrfToken': get_token(request)})
-
-    # ── Registro ──────────────────────────────────────────────────────────────
 
     @extend_schema(summary='Registro de usuario', request=RegistroSerializer)
     @action(detail=False, methods=['post'], url_path='registro')
     def registro(self, request):
-        """POST /api/auth/registro/  body: { nombre, email, password }"""
         serializer = RegistroSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -181,12 +263,9 @@ class AuthViewSet(viewsets.ViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    # ── Login ─────────────────────────────────────────────────────────────────
-
     @extend_schema(summary='Iniciar sesión')
     @action(detail=False, methods=['post'], url_path='login')
     def iniciar_sesion(self, request):
-        """POST /api/auth/login/  body: { email, password }"""
         email    = request.data.get('email', '').strip().lower()
         password = request.data.get('password', '')
 
@@ -199,17 +278,14 @@ class AuthViewSet(viewsets.ViewSet):
         try:
             user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'error': 'Credenciales incorrectas.'},
-                            status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Credenciales incorrectas.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = authenticate(request, username=user_obj.username, password=password)
         if user is None:
-            return Response({'error': 'Credenciales incorrectas.'},
-                            status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Credenciales incorrectas.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         if not user.is_active:
-            return Response({'error': 'Esta cuenta está desactivada.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Esta cuenta está desactivada.'}, status=status.HTTP_403_FORBIDDEN)
 
         login(request, user)
         return Response({
@@ -217,23 +293,17 @@ class AuthViewSet(viewsets.ViewSet):
             'usuario': PerfilSerializer(user, context={'request': request}).data,
         })
 
-    # ── Logout ────────────────────────────────────────────────────────────────
-
     @extend_schema(summary='Cerrar sesión')
     @action(detail=False, methods=['post'], url_path='logout',
             permission_classes=[IsAuthenticated])
     def cerrar_sesion(self, request):
-        """POST /api/auth/logout/"""
         logout(request)
         return Response({'mensaje': 'Sesión cerrada correctamente.'})
-
-    # ── Perfil propio ─────────────────────────────────────────────────────────
 
     @extend_schema(summary='Ver mi perfil')
     @action(detail=False, methods=['get'], url_path='me',
             permission_classes=[IsAuthenticated])
     def mi_perfil(self, request):
-        """GET /api/auth/me/"""
         serializer = PerfilSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
@@ -241,7 +311,6 @@ class AuthViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['patch', 'put'], url_path='me/editar',
             permission_classes=[IsAuthenticated])
     def editar_perfil(self, request):
-        """PATCH /api/auth/me/editar/  |  PUT /api/auth/me/editar/"""
         partial    = request.method == 'PATCH'
         serializer = PerfilSerializer(
             request.user,
@@ -253,19 +322,15 @@ class AuthViewSet(viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    # ── Cambio de contraseña ──────────────────────────────────────────────────
-
     @extend_schema(summary='Cambiar contraseña', request=CambioPasswordSerializer)
     @action(detail=False, methods=['post'], url_path='cambiar-password',
             permission_classes=[IsAuthenticated])
     def cambiar_password(self, request):
-        """POST /api/auth/cambiar-password/  body: { password_actual, password_nuevo }"""
         serializer = CambioPasswordSerializer(
             data=request.data,
             context={'request': request},
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        # Cerrar sesión para forzar re-autenticación con la nueva contraseña
         logout(request)
         return Response({'mensaje': 'Contraseña actualizada. Por favor inicia sesión de nuevo.'})

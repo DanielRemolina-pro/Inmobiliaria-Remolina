@@ -5,6 +5,7 @@ Modelos de dominio para Remolina Inmobiliaria.
 
   PerfilUsuario  → extiende User con campos de contacto (OneToOne)
   Propiedad      → inmueble publicado en la plataforma
+  Favorito       → relación usuario ↔ propiedad (lista de deseos)
 
 Los signals post_save crean/guardan el PerfilUsuario automáticamente
 al crear un User, evitando lógica duplicada en las vistas.
@@ -136,3 +137,37 @@ class Propiedad(models.Model):
         if self.imagen:
             return self.imagen.url
         return self.imagen_url or ''
+
+
+# ── Favorito ──────────────────────────────────────────────────────────────────
+
+class Favorito(models.Model):
+    """
+    Relación muchos-a-muchos entre usuario y propiedad.
+    Representa la lista de favoritos/deseos de cada usuario.
+
+    unique_together garantiza que un usuario no pueda guardar
+    la misma propiedad dos veces.
+    """
+    usuario    = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favoritos',
+        verbose_name='Usuario',
+    )
+    propiedad  = models.ForeignKey(
+        Propiedad,
+        on_delete=models.CASCADE,
+        related_name='guardado_por',
+        verbose_name='Propiedad',
+    )
+    creado     = models.DateTimeField(auto_now_add=True, verbose_name='Guardado el')
+
+    class Meta:
+        verbose_name        = 'Favorito'
+        verbose_name_plural = 'Favoritos'
+        unique_together     = ('usuario', 'propiedad')
+        ordering            = ['-creado']
+
+    def __str__(self):
+        return f'{self.usuario.username} ❤ {self.propiedad.titulo}'
