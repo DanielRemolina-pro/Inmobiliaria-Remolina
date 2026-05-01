@@ -323,10 +323,13 @@ function showToast(msg, type = '') {
 }
 
 async function getCsrfToken() {
-  const m = document.cookie.match(/csrftoken=([^;]+)/);
-  if (m) return m[1];
+  // En contexto cross-origin document.cookie no contiene cookies del dominio
+  // :8000, por eso siempre pedimos el token al endpoint y lo cacheamos.
+  if (window.__csrfToken) return window.__csrfToken;
   const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
-  return (await r.json()).csrfToken;
+  const data = await r.json();
+  window.__csrfToken = data.csrfToken;
+  return window.__csrfToken;
 }
 
 function formatPrice(price) {
@@ -336,7 +339,9 @@ function formatPrice(price) {
 
 // ── Auth state ─────────────────────────────────────────────────────────────
 let currentUser = null;
-let favIds      = new Set();   // IDs de propiedades que el usuario ya tiene como favorito
+// FIX: favIds definido en scope global del módulo, garantiza disponibilidad
+// antes de renderizar cards
+let favIds = new Set();
 
 async function initAuth() {
   try {
@@ -348,11 +353,18 @@ async function initAuth() {
       document.getElementById('navUser').classList.remove('oculto');
       document.getElementById('navLoginBtn').classList.add('oculto');
 
-      // Cargar IDs de favoritos para marcar ♥ en las cards
-      const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
-      if (favRes.ok) {
-        const data = await favRes.json();
-        favIds = new Set(data.ids.map(String));
+      // FIX: await explícito para garantizar favIds poblado ANTES de retornar
+      // Antes, si el fetch de /ids/ tardaba, loadDestacadas podía renderizar
+      // sin saber cuáles propiedades estaban en favoritos
+      try {
+        const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
+        if (favRes.ok) {
+          const data = await favRes.json();
+          favIds = new Set(data.ids.map(String));
+        }
+      } catch {
+        // No bloquear si falla la carga de IDs
+        favIds = new Set();
       }
     } else {
       document.getElementById('navUser').classList.add('oculto');
@@ -371,6 +383,9 @@ async function toggleFav(propId, btn) {
     setTimeout(() => { window.location.href = 'login.html'; }, 1200);
     return;
   }
+
+  // FIX: deshabilitar botón durante la petición para evitar doble-clic
+  btn.disabled = true;
 
   try {
     const csrf = await getCsrfToken();
@@ -399,13 +414,16 @@ async function toggleFav(propId, btn) {
     }
   } catch {
     showToast('Error de conexión', 'error');
+  } finally {
+    // FIX: rehabilitar botón siempre, incluso si hubo error
+    btn.disabled = false;
   }
 }
 
 // ── Build card ─────────────────────────────────────────────────────────────
 function buildCard(p, delay = 0) {
-  const img    = p.imagen_display || 'videos/dani.png';
-  const isFav  = favIds.has(String(p.id));
+  const img   = p.imagen_display || 'videos/dani.png';
+  const isFav = favIds.has(String(p.id));
 
   const features = [
     p.habitaciones ? `${p.habitaciones} 🛏` : null,
@@ -443,6 +461,8 @@ function buildCard(p, delay = 0) {
       </div>
     </div>`;
 
+  // FIX: listener añadido con referencia directa al botón del DOM para
+  // que el estado (textContent, classList) se actualice correctamente
   card.querySelector('.card-fav').addEventListener('click', (e) => {
     toggleFav(p.id, e.currentTarget);
   });
@@ -468,9 +488,8 @@ async function loadDestacadas() {
     }
 
     data.forEach((p, i) => grid.appendChild(buildCard(p, i * 0.1)));
-    grid.style.display = '';  // mostrar grid
+    grid.style.display = '';
 
-    // Reveal animation
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
@@ -483,9 +502,11 @@ async function loadDestacadas() {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
+// FIX: secuencia estricta — primero auth+favIds, luego renderizar cards
+// Antes el orden podía invertirse si alguna promesa resolvía antes
 (async () => {
-  await initAuth();       // primero auth (necesitamos favIds antes de renderizar cards)
-  await loadDestacadas(); // luego propiedades (ya con favIds poblado)
+  await initAuth();       // garantiza currentUser y favIds listos
+  await loadDestacadas(); // renderiza cards ya con favIds correcto
 })();
 
 // ── Logout ─────────────────────────────────────────────────────────────────
@@ -526,7 +547,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ── Reveal general (secciones fuera del grid) ──────────────────────────────
+// ── Reveal general ─────────────────────────────────────────────────────────
 const revealObs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });

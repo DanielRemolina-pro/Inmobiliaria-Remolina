@@ -55,7 +55,7 @@
 
   <div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
 
-    <!-- FILTERS BAR (HU008, HU018, HU019) -->
+    <!-- FILTERS BAR -->
     <div class="filters-bar">
       <div class="filters-top">
         <div class="search-input-wrap">
@@ -94,7 +94,7 @@
       </div>
     </div>
 
-    <!-- GRID (HU007) -->
+    <!-- GRID -->
     <div class="propiedades-grid" id="propiedadesGrid"></div>
 
     <!-- Empty state -->
@@ -104,7 +104,7 @@
       <p>Intenta ajustar los filtros para encontrar la propiedad que buscas.</p>
     </div>
 
-    <!-- PAGINATION (HU007 — 12/page) -->
+    <!-- PAGINATION -->
     <div class="pagination" id="pagination"></div>
 
   </div>
@@ -135,28 +135,80 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-// ── Auth state (Django session API) ──────────────────────────────────────
-const API = 'http://127.0.0.1:8000/api/auth';
-let currentUser = null;
+// ── Constantes API ──────────────────────────────────────────────────────────
+const API_AUTH = 'http://127.0.0.1:8000/api/auth';
+const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
+const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
 
-async function getCsrfToken() {
-  const m = document.cookie.match(/csrftoken=([^;]+)/);
-  if (m) return m[1];
-  const r = await fetch(`${API}/csrf/`, { credentials: 'include' });
-  return (await r.json()).csrfToken;
+// ── Estado global ───────────────────────────────────────────────────────────
+let currentUser  = null;
+// FIX: favIds usa la API REST igual que index.html, reemplazando
+// el localStorage que era inconsistente entre páginas y no requería
+// autenticación real
+let favIds       = new Set();
+let propiedades  = [];
+let filtered     = [];
+let currentPage  = 1;
+const PAGE_SIZE  = 12;
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
 }
 
-(async () => {
+async function getCsrfToken() {
+  // En contexto cross-origin document.cookie no contiene cookies del dominio
+  // :8000, por eso siempre pedimos el token al endpoint y lo cacheamos.
+  if (window.__csrfToken) return window.__csrfToken;
+  const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
+  const data = await r.json();
+  window.__csrfToken = data.csrfToken;
+  return window.__csrfToken;
+}
+
+function formatPrecio(p) {
+  if (p === null || p === undefined) return 'Consultar precio';
+  return '$ ' + Number(p).toLocaleString('es-CO');
+}
+
+function formatArea(a) {
+  if (!a) return '—';
+  return a >= 10000 ? (a / 10000).toFixed(1) + ' ha' : a + ' m²';
+}
+
+function getBadgeClass(estado) {
+  return { disponible: 'disponible', vendido: 'vendido', reservado: 'reservado' }[estado] || 'disponible';
+}
+
+// ── Auth + carga de favIds ──────────────────────────────────────────────────
+async function initAuth() {
   const navUser     = document.getElementById('navUser');
   const navLoginBtn = document.getElementById('navLoginBtn');
   try {
-    const res = await fetch(`${API}/me/`, { credentials: 'include' });
+    const res = await fetch(`${API_AUTH}/me/`, { credentials: 'include' });
     if (res.ok) {
       currentUser = await res.json();
       document.getElementById('navUserName').textContent =
         currentUser.first_name || currentUser.username || currentUser.email;
       navUser.classList.remove('oculto');
       navLoginBtn.classList.add('oculto');
+
+      // FIX: cargar IDs de favoritos desde la API (no desde localStorage)
+      // para que el estado de los corazones sea real y consistente con
+      // el backend y con favoritos.html
+      try {
+        const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
+        if (favRes.ok) {
+          const data = await favRes.json();
+          favIds = new Set(data.ids.map(String));
+        }
+      } catch {
+        favIds = new Set();
+      }
     } else {
       navUser.classList.add('oculto');
       navLoginBtn.classList.remove('oculto');
@@ -165,103 +217,113 @@ async function getCsrfToken() {
     navUser.classList.add('oculto');
     navLoginBtn.classList.remove('oculto');
   }
-})();
+}
 
-document.getElementById('navLogout')?.addEventListener('click', async (e) => {
-  e.preventDefault();
-  const csrf = await getCsrfToken();
-  await fetch(`${API}/logout/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
-    credentials: 'include',
-  });
-  window.location.reload();
-});
+// ── Toggle favorito via API ─────────────────────────────────────────────────
+// FIX: función unificada con la de index.html, usa API REST en lugar de
+// localStorage. Requiere sesión activa y llama al mismo endpoint.
+async function toggleFav(propId, btn) {
+  if (!currentUser) {
+    showToast('Inicia sesión para guardar favoritos');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+    return;
+  }
 
-let PAGE_SIZE = 12;
-let currentPage = 1;
-let filtered = [];
-let propiedades = [];
+  // FIX: deshabilitar botón para evitar doble envío
+  btn.disabled = true;
 
-// Read URL params
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlParams.get('tipo');
+  try {
+    const csrf = await getCsrfToken();
+    const res  = await fetch(`${API_FAV}/toggle/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ propiedad_id: propId }),
+    });
 
+    if (res.ok || res.status === 201) {
+      const data = await res.json();
+      if (data.action === 'added') {
+        favIds.add(String(propId));
+        btn.textContent = '♥';
+        btn.classList.add('active');
+        showToast('❤ Guardado en favoritos', 'success');
+      } else {
+        favIds.delete(String(propId));
+        btn.textContent = '♡';
+        btn.classList.remove('active');
+        showToast('Eliminado de favoritos');
+      }
+    } else {
+      showToast('No se pudo actualizar favorito', 'error');
+    }
+  } catch {
+    showToast('Error de conexión', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Carga de propiedades ────────────────────────────────────────────────────
 async function cargarPropiedades() {
   try {
-    // Pedir TODAS las propiedades sin paginación del servidor
-    // usando el endpoint ?page_size=1000, o usar el nuevo endpoint /destacadas/ para el home
-    const res = await fetch("http://127.0.0.1:8000/api/propiedades/?page_size=1000");
+    const res  = await fetch(`${API_PROP}/?page_size=1000`, { credentials: 'include' });
     const data = await res.json();
-
-    // Con paginación el backend devuelve { count, next, previous, results: [...] }
-    // Sin paginación (lista plana) devuelve directamente el array
     const lista = Array.isArray(data) ? data : (data.results || []);
 
     propiedades = lista.map(p => ({
-      id: p.id,
-      titulo: p.titulo,
-      precio: p.precio,
+      id:       p.id,
+      titulo:   p.titulo,
+      precio:   p.precio,
       descripcion: p.descripcion,
-      tipo: p.tipo,
-      ciudad: p.ciudad,
-      ubicacion: p.ubicacion,
-      area: p.area,
-      estado: p.estado,
-      fecha: p.fecha,
-      img: p.imagen_display  
-        ? p.imagen_display
-        : p.imagen_url
-          ? p.imagen_url
-          : "videos/dani.png"
+      tipo:     p.tipo,
+      ciudad:   p.ciudad,
+      ubicacion: p.ubicacion || '',
+      area:     p.area,
+      estado:   p.estado,
+      fecha:    p.fecha,
+      img:      p.imagen_display || p.imagen_url || 'videos/dani.png',
     }));
 
     applyFilters();
   } catch (err) {
-    console.error("Error cargando propiedades:", err);
+    console.error('Error cargando propiedades:', err);
+    showToast('Error al cargar propiedades', 'error');
   }
 }
 
+// ── Filtros ─────────────────────────────────────────────────────────────────
 function applyFilters() {
   const search = document.getElementById('searchInput').value.toLowerCase();
-  const tipo = document.getElementById('tipoFilter').value;
+  const tipo   = document.getElementById('tipoFilter').value;
   const ciudad = document.getElementById('ciudadFilter').value;
-  const orden = document.getElementById('ordenFilter').value;
-  const min = parseFloat(document.getElementById('precioMin').value) || 0;
-  const max = parseFloat(document.getElementById('precioMax').value) || Infinity;
+  const orden  = document.getElementById('ordenFilter').value;
+  const min    = parseFloat(document.getElementById('precioMin').value) || 0;
+  const max    = parseFloat(document.getElementById('precioMax').value) || Infinity;
 
   filtered = propiedades.filter(p => {
-    const matchText = !search || p.titulo.toLowerCase().includes(search) || p.ubicacion.toLowerCase().includes(search) || p.tipo.toLowerCase().includes(search);
-    const matchTipo = !tipo || p.tipo === tipo;
+    const matchText   = !search ||
+      p.titulo.toLowerCase().includes(search) ||
+      (p.ubicacion || '').toLowerCase().includes(search) ||
+      (p.tipo || '').toLowerCase().includes(search);
+    const matchTipo   = !tipo   || p.tipo === tipo;
     const matchCiudad = !ciudad || p.ciudad === ciudad;
-    const matchPrecio = (p.precio === null || p.precio === undefined) ? true : (p.precio >= min && p.precio <= max);
+    const matchPrecio = (p.precio == null) ? true : (p.precio >= min && p.precio <= max);
     return matchText && matchTipo && matchCiudad && matchPrecio;
   });
 
-  if (orden === 'precio-asc') filtered.sort((a,b) => a.precio - b.precio);
-  else if (orden === 'precio-desc') filtered.sort((a,b) => b.precio - a.precio);
-  else if (orden === 'area-desc') filtered.sort((a,b) => b.area - a.area);
-  else if (orden === 'reciente') filtered.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  if (orden === 'precio-asc')  filtered.sort((a, b) => a.precio - b.precio);
+  else if (orden === 'precio-desc') filtered.sort((a, b) => b.precio - a.precio);
+  else if (orden === 'area-desc')   filtered.sort((a, b) => b.area - a.area);
+  else if (orden === 'reciente')    filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   currentPage = 1;
   render();
 }
 
-function formatPrecio(p) {
-  if (p === null || p === undefined) return 'Consultar precio';
-  return '$' + p.toLocaleString('es-CO');
-}
-
-function formatArea(a) {
-  return a >= 10000 ? (a/10000).toFixed(1) + ' ha' : a + ' m²';
-}
-
-function getBadgeClass(estado) {
-  return { disponible:'disponible', vendido:'vendido', reservado:'reservado' }[estado] || 'disponible';
-}
-
+// ── Render ──────────────────────────────────────────────────────────────────
 function render() {
-  const grid = document.getElementById('propiedadesGrid');
+  const grid  = document.getElementById('propiedadesGrid');
   const empty = document.getElementById('emptyState');
   const total = filtered.length;
   document.getElementById('totalCount').textContent = total;
@@ -275,114 +337,92 @@ function render() {
   empty.classList.add('oculto');
 
   const start = (currentPage - 1) * PAGE_SIZE;
-  const page = filtered.slice(start, start + PAGE_SIZE);
-  const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
+  const page  = filtered.slice(start, start + PAGE_SIZE);
 
-  grid.innerHTML = page.map(p => `
-    <div class="propiedad-card reveal visible">
+  // FIX: en lugar de innerHTML con strings (que no permite añadir
+  // event listeners correctamente en los botones de fav), se construye
+  // cada card con createElement para poder adjuntar listeners con referencias
+  // directas al botón real del DOM
+  grid.innerHTML = '';
+  page.forEach(p => {
+    const isFav = favIds.has(String(p.id));
+    const card  = document.createElement('div');
+    card.className = 'propiedad-card reveal visible';
+
+    card.innerHTML = `
       <div class="card-img-wrap">
-        <img src="${p.img}" alt="${p.titulo}" loading="lazy">
-        <span class="card-badge ${getBadgeClass(p.estado)}">${p.estado.charAt(0).toUpperCase()+p.estado.slice(1)}</span>
-        <button class="card-fav ${favs.includes(String(p.id)) ? 'active' : ''}" data-id="${p.id}">${favs.includes(String(p.id)) ? '♥' : '♡'}</button>
+        <img src="${p.img}" alt="${p.titulo}" loading="lazy"
+             onerror="this.src='videos/dani.png'">
+        <span class="card-badge ${getBadgeClass(p.estado)}">
+          ${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+        </span>
+        <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
+          ${isFav ? '♥' : '♡'}
+        </button>
       </div>
       <div class="card-body">
         <div class="card-type">
-          ${p.tipo.charAt(0).toUpperCase()+p.tipo.slice(1)} • ${p.ciudad}
+          ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'} • ${p.ciudad || ''}
         </div>
         <h3 class="card-title">${p.titulo}</h3>
-        <div class="card-location">📍 ${p.ciudad}, Tolima</div>
+        <div class="card-location">📍 ${p.ciudad || 'Ibagué'}, Tolima</div>
         <div class="card-price">${formatPrecio(p.precio)}</div>
         <div class="card-features">
-          <span>Área: ${formatArea(p.area)} | ${p.ubicacion}</span>
+          <span>Área: ${formatArea(p.area)}${p.ubicacion ? ' | ' + p.ubicacion : ''}</span>
         </div>
         <div class="card-actions">
           <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
           <a href="index.html#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
           ${currentUser?.is_staff ? `
-          <button class="btn btn-sm" style="background:#d97706;color:#fff;" onclick="editarPropiedad(${p.id})">✏ Editar</button>
-          <button class="btn btn-sm" style="background:#dc2626;color:#fff;" onclick="eliminarPropiedad(${p.id}, this)">🗑 Eliminar</button>
+          <button class="btn btn-sm" style="background:#d97706;color:#fff;" data-edit="${p.id}">✏ Editar</button>
+          <button class="btn btn-sm" style="background:#dc2626;color:#fff;" data-delete="${p.id}">🗑 Eliminar</button>
           ` : ''}
         </div>
-      </div>
-    </div>
-  `).join('');
+      </div>`;
 
-  // Pagination
+    // FIX: listener en el botón real del DOM (no innerHTML string)
+    card.querySelector('.card-fav').addEventListener('click', (e) => {
+      toggleFav(p.id, e.currentTarget);
+    });
+
+    // Botones de admin si aplica
+    card.querySelector('[data-edit]')?.addEventListener('click', () => {
+      window.location.href = `detalle.html?id=${p.id}&modo=editar`;
+    });
+    card.querySelector('[data-delete]')?.addEventListener('click', (e) => {
+      eliminarPropiedad(p.id, e.currentTarget);
+    });
+
+    grid.appendChild(card);
+  });
+
+  // Paginación
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML = ''; return; }
-  pg.innerHTML = Array.from({length: totalPages}, (_, i) => i+1).map(n =>
+  pg.innerHTML = Array.from({ length: totalPages }, (_, i) => i + 1).map(n =>
     `<button class="page-btn ${n === currentPage ? 'active' : ''}" data-page="${n}">${n}</button>`
   ).join('');
   pg.querySelectorAll('.page-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentPage = parseInt(btn.dataset.page);
       render();
-      window.scrollTo({top:300, behavior:'smooth'});
-    });
-  });
-
-  // Fav buttons
-  grid.querySelectorAll('.card-fav').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.id;
-      const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
-      const idx = favs.indexOf(id);
-      if (idx === -1) { favs.push(id); btn.textContent = '♥'; btn.classList.add('active'); showToast('❤ Guardado en favoritos', 'success'); }
-      else { favs.splice(idx,1); btn.textContent = '♡'; btn.classList.remove('active'); showToast('Eliminado de favoritos'); }
-      localStorage.setItem('favoritos', JSON.stringify(favs));
+      window.scrollTo({ top: 300, behavior: 'smooth' });
     });
   });
 }
 
-// Filter listeners
-['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', applyFilters);
-  document.getElementById(id)?.addEventListener('change', applyFilters);
-});
-document.getElementById('clearFilters').addEventListener('click', () => {
-  ['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
-  applyFilters();
-});
-
-// FAB
-const fabMain = document.getElementById('fab-main');
-const fabItems = document.getElementById('fab-items');
-fabMain.addEventListener('click', () => { fabItems.classList.toggle('oculto'); fabMain.classList.toggle('open'); });
-document.addEventListener('click', (e) => {
-  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
-    fabItems.classList.add('oculto'); fabMain.classList.remove('open');
-  }
-});
-
-// Hamburger
-document.getElementById('navHamburger').addEventListener('click', () => document.getElementById('navMenu').classList.toggle('open'));
-
-function showToast(msg, type='') {
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), 3200);
-}
-
-// ── Funciones de administración (solo is_staff) ───────────────────────────
-const PROPS_API = 'http://127.0.0.1:8000/api/propiedades';
-
+// ── Administración (solo is_staff) ──────────────────────────────────────────
 async function eliminarPropiedad(id, btn) {
   if (!confirm('¿Seguro que deseas eliminar esta propiedad? Esta acción no se puede deshacer.')) return;
   try {
     const csrf = await getCsrfToken();
-    const res = await fetch(`${PROPS_API}/${id}/`, {
+    const res = await fetch(`${API_PROP}/${id}/`, {
       method: 'DELETE',
       headers: { 'X-CSRFToken': csrf },
       credentials: 'include',
     });
     if (res.status === 204) {
-      // Quitar la tarjeta del DOM
       btn.closest('.propiedad-card').remove();
       propiedades = propiedades.filter(p => p.id !== id);
       filtered    = filtered.filter(p => p.id !== id);
@@ -392,14 +432,66 @@ async function eliminarPropiedad(id, btn) {
       const err = await res.json();
       showToast(err.error || 'Error al eliminar.', 'error');
     }
-  } catch { showToast('Error de conexión.', 'error'); }
+  } catch {
+    showToast('Error de conexión.', 'error');
+  }
 }
 
-function editarPropiedad(id) {
-  window.location.href = `detalle.html?id=${id}&modo=editar`;
-}
+// ── Listeners de filtros ────────────────────────────────────────────────────
+['searchInput', 'tipoFilter', 'ciudadFilter', 'ordenFilter', 'precioMin', 'precioMax'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input',  applyFilters);
+  document.getElementById(id)?.addEventListener('change', applyFilters);
+});
+document.getElementById('clearFilters').addEventListener('click', () => {
+  ['searchInput', 'tipoFilter', 'ciudadFilter', 'ordenFilter', 'precioMin', 'precioMax'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  applyFilters();
+});
 
-cargarPropiedades();
+// ── Logout ──────────────────────────────────────────────────────────────────
+document.getElementById('navLogout')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const csrf = await getCsrfToken();
+  await fetch(`${API_AUTH}/logout/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  window.location.reload();
+});
+
+// ── FAB ─────────────────────────────────────────────────────────────────────
+const fabMain  = document.getElementById('fab-main');
+const fabItems = document.getElementById('fab-items');
+fabMain.addEventListener('click', () => {
+  fabItems.classList.toggle('oculto');
+  fabMain.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
+    fabItems.classList.add('oculto');
+    fabMain.classList.remove('open');
+  }
+});
+
+// ── Hamburger ────────────────────────────────────────────────────────────────
+document.getElementById('navHamburger').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+
+// ── URL params ───────────────────────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlParams.get('tipo');
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+// FIX: auth primero para tener favIds antes de renderizar,
+// luego carga de propiedades
+(async () => {
+  await initAuth();
+  await cargarPropiedades();
+})();
 </script>
 </body>
 </html>
