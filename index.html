@@ -69,11 +69,11 @@
   <div class="hero-stats">
     <div class="hero-stats-inner">
       <div class="stat-item">
-        <div class="stat-number" id="statProps">120</div>
+        <div class="stat-number" id="statProps">0</div>
         <div class="stat-label">Propiedades</div>
       </div>
       <div class="stat-item">
-        <div class="stat-number" id="statClients">340</div>
+        <div class="stat-number" id="statClients">0</div>
         <div class="stat-label">Clientes satisfechos</div>
       </div>
       <div class="stat-item">
@@ -100,105 +100,41 @@
       </p>
     </div>
 
-    <div class="propiedades-grid">
-
-      <!-- CARD 1 — Finca Campestre (id 101) -->
-      <div class="propiedad-card reveal">
-        <div class="card-img-wrap">
-          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_750122-MCO107014467213_022026-F.webp" alt="Finca Campestre" loading="lazy">
-          <span class="card-badge disponible">Disponible</span>
-          <button class="card-fav" data-id="101" title="Guardar en favoritos">♡</button>
-        </div>
+    <!-- Skeleton / loading state -->
+    <div id="propsSkeleton" class="propiedades-grid">
+      <div class="propiedad-card" style="opacity:.35; pointer-events:none;">
+        <div class="card-img-wrap" style="background:var(--obsidian); height:220px;"></div>
         <div class="card-body">
-          <div class="card-type">Finca</div>
-          <h3 class="card-title">Finca Campestre</h3>
-          <div class="card-location">📍 Ibagué, Tolima</div>
-          <div class="card-price">Consultar precio</div>
-          <div class="card-features">
-            <span>3 🛏</span>
-            <span>2 🛁</span>
-            <span>5.2 ha</span>
-            <span>Agropecuaria 🌳</span>
-          </div>
-          <div class="card-actions">
-            <a href="detalle.html?id=101" class="btn btn-sm btn-primary">Ver detalle</a>
-            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-          </div>
+          <div style="height:12px; width:60%; background:var(--obsidian); border-radius:4px; margin-bottom:10px;"></div>
+          <div style="height:20px; width:80%; background:var(--obsidian); border-radius:4px; margin-bottom:8px;"></div>
+          <div style="height:12px; width:50%; background:var(--obsidian); border-radius:4px;"></div>
         </div>
       </div>
-
-      <!-- CARD 2 — Apartamento Moderno (id 102) -->
-      <div class="propiedad-card reveal" style="transition-delay:0.1s">
-        <div class="card-img-wrap">
-          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_864383-MCO108035243563_032026-F.webp" alt="Apartamento Moderno" loading="lazy">
-          <span class="card-badge disponible">Disponible</span>
-          <button class="card-fav" data-id="102" title="Guardar en favoritos">♡</button>
-        </div>
+      <div class="propiedad-card" style="opacity:.25; pointer-events:none;">
+        <div class="card-img-wrap" style="background:var(--obsidian); height:220px;"></div>
         <div class="card-body">
-          <div class="card-type">Apartamento</div>
-          <h3 class="card-title">Apartamento Moderno</h3>
-          <div class="card-location">📍 Ibagué, Tolima</div>
-          <div class="card-price">Consultar precio</div>
-          <div class="card-features">
-            <span>3 🛏</span>
-            <span>2 🛁</span>
-            <span>120 m²</span>
-            <span>Piso 5</span>
-          </div>
-          <div class="card-actions">
-            <a href="detalle.html?id=102" class="btn btn-sm btn-primary">Ver detalle</a>
-            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-          </div>
+          <div style="height:12px; width:60%; background:var(--obsidian); border-radius:4px; margin-bottom:10px;"></div>
+          <div style="height:20px; width:80%; background:var(--obsidian); border-radius:4px; margin-bottom:8px;"></div>
+          <div style="height:12px; width:50%; background:var(--obsidian); border-radius:4px;"></div>
         </div>
       </div>
-
-      <!-- CARD 3 — Lote Estratégico (id 103) -->
-      <div class="propiedad-card reveal" style="transition-delay:0.2s">
-        <div class="card-img-wrap">
-          <img src="https://cdn4.fincaraiz.com.co/repo/img/th.outside1200x1200.67e5c20a87b05_infocdn__tpou3lejq69koiknvruqsfrlrmiuoco2xo5ozkcwjpg.jpg" alt="Lote Estratégico" loading="lazy">
-          <span class="card-badge disponible">Disponible</span>
-          <button class="card-fav" data-id="103" title="Guardar en favoritos">♡</button>
-        </div>
+      <div class="propiedad-card" style="opacity:.15; pointer-events:none;">
+        <div class="card-img-wrap" style="background:var(--obsidian); height:220px;"></div>
         <div class="card-body">
-          <div class="card-type">Lote</div>
-          <h3 class="card-title">Lote Estratégico</h3>
-          <div class="card-location">📍 Ibagué, Tolima</div>
-          <div class="card-price">Consultar precio</div>
-          <div class="card-features">
-            <span>1.800 m²</span>
-            <span>Urbanizable 🏗</span>
-          </div>
-          <div class="card-actions">
-            <a href="detalle.html?id=103" class="btn btn-sm btn-primary">Ver detalle</a>
-            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-          </div>
+          <div style="height:12px; width:60%; background:var(--obsidian); border-radius:4px; margin-bottom:10px;"></div>
+          <div style="height:20px; width:80%; background:var(--obsidian); border-radius:4px; margin-bottom:8px;"></div>
+          <div style="height:12px; width:50%; background:var(--obsidian); border-radius:4px;"></div>
         </div>
       </div>
+    </div>
 
-      <!-- CARD 4 — Bodega Industrial (id 104) -->
-      <div class="propiedad-card reveal" style="transition-delay:0.3s">
-        <div class="card-img-wrap">
-          <img src="https://http2.mlstatic.com/D_NQ_NP_2X_972911-MCO95528180406_102025-F.webp" alt="Bodega Industrial" loading="lazy">
-          <span class="card-badge disponible">Disponible</span>
-          <button class="card-fav" data-id="104" title="Guardar en favoritos">♡</button>
-        </div>
-        <div class="card-body">
-          <div class="card-type">Almacén · Bodega</div>
-          <h3 class="card-title">Bodega Industrial</h3>
-          <div class="card-location">📍 Zona industrial, Ibagué</div>
-          <div class="card-price">Consultar precio</div>
-          <div class="card-features">
-            <span>600 m²</span>
-            <span>Cargador ⚡</span>
-            <span>Camiones 🚛</span>
-          </div>
-          <div class="card-actions">
-            <a href="detalle.html?id=104" class="btn btn-sm btn-primary">Ver detalle</a>
-            <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-          </div>
-        </div>
-      </div>
+    <!-- Grid real (inyectado por JS) -->
+    <div id="propsGrid" class="propiedades-grid" style="display:none;"></div>
 
+    <!-- Error state -->
+    <div id="propsError" style="display:none; text-align:center; padding:3rem 1rem; color:var(--ivory-dimmer);">
+      <p style="font-size:2rem; margin-bottom:0.5rem;">⚠️</p>
+      <p>No se pudieron cargar las propiedades. Intenta recargar la página.</p>
     </div>
 
     <div style="text-align:center; margin-top:3rem;">
@@ -373,41 +309,190 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-// ── Auth state (Django session API) ──────────────────────────────────────
-const API = 'http://127.0.0.1:8000/api/auth';
+const API_AUTH = 'http://127.0.0.1:8000/api/auth';
+const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
+const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
 
 async function getCsrfToken() {
   const m = document.cookie.match(/csrftoken=([^;]+)/);
   if (m) return m[1];
-  const r = await fetch(`${API}/csrf/`, { credentials: 'include' });
+  const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
   return (await r.json()).csrfToken;
 }
 
-(async () => {
-  const navUser     = document.getElementById('navUser');
-  const navLoginBtn = document.getElementById('navLoginBtn');
-  const navUserName = document.getElementById('navUserName');
+function formatPrice(price) {
+  if (!price) return 'Consultar precio';
+  return '$ ' + Number(price).toLocaleString('es-CO');
+}
+
+// ── Auth state ─────────────────────────────────────────────────────────────
+let currentUser = null;
+let favIds      = new Set();   // IDs de propiedades que el usuario ya tiene como favorito
+
+async function initAuth() {
   try {
-    const res = await fetch(`${API}/me/`, { credentials: 'include' });
+    const res = await fetch(`${API_AUTH}/me/`, { credentials: 'include' });
     if (res.ok) {
-      const u = await res.json();
-      navUserName.textContent = u.first_name || u.username || u.email;
-      navUser.classList.remove('oculto');
-      navLoginBtn.classList.add('oculto');
+      currentUser = await res.json();
+      document.getElementById('navUserName').textContent =
+        currentUser.first_name || currentUser.username;
+      document.getElementById('navUser').classList.remove('oculto');
+      document.getElementById('navLoginBtn').classList.add('oculto');
+
+      // Cargar IDs de favoritos para marcar ♥ en las cards
+      const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
+      if (favRes.ok) {
+        const data = await favRes.json();
+        favIds = new Set(data.ids.map(String));
+      }
     } else {
-      navUser.classList.add('oculto');
-      navLoginBtn.classList.remove('oculto');
+      document.getElementById('navUser').classList.add('oculto');
+      document.getElementById('navLoginBtn').classList.remove('oculto');
     }
   } catch {
-    navUser.classList.add('oculto');
-    navLoginBtn.classList.remove('oculto');
+    document.getElementById('navUser').classList.add('oculto');
+    document.getElementById('navLoginBtn').classList.remove('oculto');
   }
+}
+
+// ── Favorito toggle ────────────────────────────────────────────────────────
+async function toggleFav(propId, btn) {
+  if (!currentUser) {
+    showToast('Inicia sesión para guardar favoritos');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+    return;
+  }
+
+  try {
+    const csrf = await getCsrfToken();
+    const res  = await fetch(`${API_FAV}/toggle/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ propiedad_id: propId }),
+    });
+
+    if (res.ok || res.status === 201) {
+      const data = await res.json();
+      if (data.action === 'added') {
+        favIds.add(String(propId));
+        btn.textContent = '♥';
+        btn.classList.add('active');
+        showToast('❤ Guardado en favoritos', 'success');
+      } else {
+        favIds.delete(String(propId));
+        btn.textContent = '♡';
+        btn.classList.remove('active');
+        showToast('Eliminado de favoritos');
+      }
+    } else {
+      showToast('No se pudo actualizar favorito', 'error');
+    }
+  } catch {
+    showToast('Error de conexión', 'error');
+  }
+}
+
+// ── Build card ─────────────────────────────────────────────────────────────
+function buildCard(p, delay = 0) {
+  const img    = p.imagen_display || 'videos/dani.png';
+  const isFav  = favIds.has(String(p.id));
+
+  const features = [
+    p.habitaciones ? `${p.habitaciones} 🛏` : null,
+    p.banos        ? `${p.banos} 🛁`        : null,
+    p.area         ? `${p.area} m²`         : null,
+  ].filter(Boolean);
+
+  const card = document.createElement('div');
+  card.className = 'propiedad-card reveal';
+  card.style.transitionDelay = `${delay}s`;
+  card.innerHTML = `
+    <div class="card-img-wrap">
+      <img src="${img}" alt="${p.titulo}" loading="lazy"
+           onerror="this.src='videos/dani.png'">
+      <span class="card-badge ${p.estado}">
+        ${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+      </span>
+      <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
+        ${isFav ? '♥' : '♡'}
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="card-type">
+        ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'}
+      </div>
+      <h3 class="card-title">${p.titulo}</h3>
+      <div class="card-location">📍 ${p.ciudad || 'Ibagué, Tolima'}</div>
+      <div class="card-price">${formatPrice(p.precio)}</div>
+      ${features.length
+        ? `<div class="card-features">${features.map(f => `<span>${f}</span>`).join('')}</div>`
+        : ''}
+      <div class="card-actions">
+        <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
+        <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
+      </div>
+    </div>`;
+
+  card.querySelector('.card-fav').addEventListener('click', (e) => {
+    toggleFav(p.id, e.currentTarget);
+  });
+
+  return card;
+}
+
+// ── Load destacadas ────────────────────────────────────────────────────────
+async function loadDestacadas() {
+  try {
+    const res  = await fetch(`${API_PROP}/destacadas/`, { credentials: 'include' });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+
+    const skeleton = document.getElementById('propsSkeleton');
+    const grid     = document.getElementById('propsGrid');
+
+    skeleton.style.display = 'none';
+
+    if (!data.length) {
+      document.getElementById('propsError').style.display = 'block';
+      return;
+    }
+
+    data.forEach((p, i) => grid.appendChild(buildCard(p, i * 0.1)));
+    grid.style.display = '';  // mostrar grid
+
+    // Reveal animation
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('#propsGrid .reveal').forEach(el => obs.observe(el));
+
+  } catch {
+    document.getElementById('propsSkeleton').style.display = 'none';
+    document.getElementById('propsError').style.display    = 'block';
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async () => {
+  await initAuth();       // primero auth (necesitamos favIds antes de renderizar cards)
+  await loadDestacadas(); // luego propiedades (ya con favIds poblado)
 })();
 
+// ── Logout ─────────────────────────────────────────────────────────────────
 document.getElementById('navLogout')?.addEventListener('click', async (e) => {
   e.preventDefault();
   const csrf = await getCsrfToken();
-  await fetch(`${API}/logout/`, {
+  await fetch(`${API_AUTH}/logout/`, {
     method: 'POST',
     headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -415,20 +500,20 @@ document.getElementById('navLogout')?.addEventListener('click', async (e) => {
   window.location.reload();
 });
 
-// ── Navbar scroll
+// ── Navbar scroll ──────────────────────────────────────────────────────────
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
   navbar.classList.toggle('scrolled', window.scrollY > 30);
 });
 navbar.classList.add('scrolled');
 
-// ── Hamburger
+// ── Hamburger ──────────────────────────────────────────────────────────────
 document.getElementById('navHamburger').addEventListener('click', () => {
   document.getElementById('navMenu').classList.toggle('open');
 });
 
-// ── FAB
-const fabMain = document.getElementById('fab-main');
+// ── FAB ────────────────────────────────────────────────────────────────────
+const fabMain  = document.getElementById('fab-main');
 const fabItems = document.getElementById('fab-items');
 fabMain.addEventListener('click', () => {
   fabItems.classList.toggle('oculto');
@@ -441,36 +526,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ── Reveal on scroll
-const observer = new IntersectionObserver((entries) => {
+// ── Reveal general (secciones fuera del grid) ──────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.reveal:not(#propsGrid .reveal)').forEach(el => revealObs.observe(el));
 
-// ── Favorites
-document.querySelectorAll('.card-fav').forEach(btn => {
-  const id = btn.dataset.id;
-  const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
-  if (favs.includes(id)) { btn.textContent = '♥'; btn.classList.add('active'); }
-  btn.addEventListener('click', () => {
-    const favs = JSON.parse(localStorage.getItem('favoritos') || '[]');
-    const idx = favs.indexOf(id);
-    if (idx === -1) {
-      favs.push(id);
-      btn.textContent = '♥';
-      btn.classList.add('active');
-      showToast('❤ Guardado en favoritos', 'success');
-    } else {
-      favs.splice(idx, 1);
-      btn.textContent = '♡';
-      btn.classList.remove('active');
-      showToast('Eliminado de favoritos');
-    }
-    localStorage.setItem('favoritos', JSON.stringify(favs));
-  });
-});
-
-// ── Contact form
+// ── Contacto form ──────────────────────────────────────────────────────────
 document.getElementById('contactForm').addEventListener('submit', (e) => {
   e.preventDefault();
   document.getElementById('formSuccess').classList.add('show');
@@ -478,16 +540,7 @@ document.getElementById('contactForm').addEventListener('submit', (e) => {
   setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
 });
 
-// ── Toast
-function showToast(msg, type='') {
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), 3200);
-}
-
-// ── Counter animation
+// ── Counter animation ──────────────────────────────────────────────────────
 function animateCount(el, target) {
   let n = 0;
   const step = Math.ceil(target / 60);
@@ -499,14 +552,14 @@ function animateCount(el, target) {
 }
 const statObs = new IntersectionObserver(([e]) => {
   if (e.isIntersecting) {
-    animateCount(document.getElementById('statProps'), 120);
+    animateCount(document.getElementById('statProps'),   120);
     animateCount(document.getElementById('statClients'), 340);
     statObs.disconnect();
   }
 });
 statObs.observe(document.getElementById('statProps'));
 
-// Video fallback
+// ── Video fallback ─────────────────────────────────────────────────────────
 document.querySelector('.hero-video-wrap video')?.addEventListener('error', () => {
   document.querySelector('.hero-video-wrap video').style.display = 'none';
 });

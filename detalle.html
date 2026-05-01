@@ -915,8 +915,8 @@
 
       // ── IMÁGENES principales ──
       allImgs = [];
-      if (p.imagen)     allImgs.push("http://127.0.0.1:8000" + p.imagen);
-      if (p.imagen_url) allImgs.push(p.imagen_url);
+      if (p.imagen_display) allImgs.push(p.imagen_display);
+      else if (p.imagen_url) allImgs.push(p.imagen_url);
       // Si la API devuelve un array imagenes[]
       if (Array.isArray(p.imagenes)) {
         p.imagenes.forEach(img => {
