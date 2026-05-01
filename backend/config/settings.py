@@ -158,3 +158,18 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
 }
+# ── CSRF trusted origins ───────────────────────────────────────────────────────
+# Permite peticiones POST/DELETE desde el frontend corriendo en file:// o
+# en cualquier puerto local. En producción reemplaza con tu dominio real.
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    'http://localhost:5500',
+    'http://localhost:5501',
+    'http://127.0.0.1',
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:5501',
+    'http://127.0.0.1:8000',
+]
+
+# Asegura que la cookie CSRF sea legible por JS en desarrollo cross-origin
+CSRF_COOKIE_HTTPONLY = False
