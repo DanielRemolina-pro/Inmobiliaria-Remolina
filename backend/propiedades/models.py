@@ -82,6 +82,11 @@ class Propiedad(models.Model):
         ('reservado',  'Reservado'),
     ]
 
+    MODALIDAD_CHOICES = [
+        ('venta',    'Venta'),
+        ('arriendo', 'Arriendo'),
+    ]
+
     # Información básica
     titulo      = models.CharField(max_length=200, verbose_name='Título')
     descripcion = models.TextField(blank=True, verbose_name='Descripción')
@@ -96,6 +101,13 @@ class Propiedad(models.Model):
         choices=ESTADO_CHOICES,
         default='disponible',
         verbose_name='Estado',
+    )
+
+    modalidad   = models.CharField(
+        max_length=20,
+        choices=MODALIDAD_CHOICES,
+        default='venta',
+        verbose_name='Modalidad',
     )
 
     # Ubicación
@@ -119,6 +131,12 @@ class Propiedad(models.Model):
         verbose_name='Imagen (archivo)',
     )
     imagen_url = models.URLField(null=True, blank=True, verbose_name='Imagen (URL externa)')
+
+    # Video
+    video_url  = models.URLField(
+        null=True, blank=True,
+        verbose_name='Video URL (YouTube o enlace directo)',
+    )
 
     # Fecha de publicación
     fecha = models.DateField(null=True, blank=True, verbose_name='Fecha de publicación')

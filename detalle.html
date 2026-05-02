@@ -669,6 +669,54 @@
         <!-- Características adicionales -->
         <div class="det-extra-grid" id="detExtras" style="display:none"></div>
 
+        <!-- ── VIDEO ── -->
+        <div id="videoSection" style="display:none; margin-top:2.5rem;">
+          <div class="det-sep"></div>
+          <h2 class="det-desc-title" style="margin-top:2rem;">📹 Video de la propiedad</h2>
+          <div id="videoContainer" style="border-radius:14px; overflow:hidden; aspect-ratio:16/9; background:var(--obsidian-3); margin-top:1rem;"></div>
+        </div>
+
+        <!-- ── CALCULADORA HIPOTECARIA ── -->
+        <div style="margin-top:2.5rem;">
+          <div class="det-sep"></div>
+          <h2 class="det-desc-title" style="margin-top:2rem;">🧮 Calculadora de crédito</h2>
+          <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem;">Estima tu cuota mensual aproximada</p>
+          <div style="background:var(--obsidian-3); border:1px solid var(--border-soft); border-radius:14px; padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div>
+                <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Precio total (COP)</label>
+                <input type="number" id="calcPrecio" placeholder="Ej. 350000000"
+                  style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.9rem; outline:none;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Cuota inicial (%)</label>
+                <input type="number" id="calcCuota" placeholder="Ej. 30" min="10" max="90" value="30"
+                  style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.9rem; outline:none;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Plazo (años)</label>
+                <input type="number" id="calcPlazo" placeholder="Ej. 15" min="1" max="30" value="15"
+                  style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.9rem; outline:none;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Tasa anual (%)</label>
+                <input type="number" id="calcTasa" placeholder="Ej. 12.5" step="0.1" value="12.5"
+                  style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.9rem; outline:none;">
+              </div>
+            </div>
+            <button onclick="calcularCredito()"
+              style="background:var(--gold); color:var(--obsidian); border:none; border-radius:8px; padding:0.85rem; font-weight:700; font-size:0.95rem; cursor:pointer; transition:0.2s;">
+              Calcular cuota mensual
+            </button>
+            <div id="calcResultado" style="display:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:10px; padding:1.25rem; text-align:center;">
+              <p style="color:var(--muted); font-size:0.8rem; margin-bottom:0.25rem;">Cuota mensual estimada</p>
+              <p id="calcCuotaMensual" style="font-family:var(--font-display); font-size:2rem; color:var(--gold); font-weight:600;"></p>
+              <p id="calcDetalle" style="color:var(--muted); font-size:0.8rem; margin-top:0.5rem;"></p>
+              <p style="color:var(--muted); font-size:0.72rem; margin-top:0.75rem; opacity:0.7;">* Valor aproximado. Consulta con tu banco para condiciones exactas.</p>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /det-left -->
 
       <!-- ── SIDEBAR ── -->
@@ -688,13 +736,46 @@
               </svg>
               Contactar asesor
             </a>
-            <a href="https://wa.me/573000000000" target="_blank" class="btn-wsp">
+            <a id="btnWhatsapp" href="https://wa.me/573054152644" target="_blank" class="btn-wsp">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
               </svg>
               WhatsApp
             </a>
           </div>
+        </div>
+
+        <!-- AGENDAR VISITA (visible solo si hay sesión) -->
+        <div id="agendarCard" style="display:none; background:var(--obsidian-3); border:1px solid var(--border-soft); border-radius:14px; padding:1.5rem; margin-top:1rem;">
+          <h3 style="font-family:var(--font-display); font-size:1.2rem; font-weight:400; color:var(--white); margin-bottom:0.25rem;">📅 Agendar visita</h3>
+          <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1.25rem;">Solicita una visita y nos ponemos en contacto contigo</p>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <input type="date" id="visitaFecha" min=""
+              style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
+            <select id="visitaHora"
+              style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
+              <option value="">Selecciona una hora</option>
+              <option value="09:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="14:00">2:00 PM</option>
+              <option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+            </select>
+            <textarea id="visitaNota" placeholder="Mensaje opcional al asesor…" rows="2"
+              style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; resize:none; width:100%;"></textarea>
+            <button onclick="agendarVisita()"
+              style="background:var(--gold); color:var(--obsidian); border:none; border-radius:8px; padding:0.85rem; font-weight:700; cursor:pointer; font-size:0.9rem; transition:0.2s;">
+              Solicitar visita
+            </button>
+            <p id="agendarMsg" style="text-align:center; font-size:0.82rem; min-height:1rem;"></p>
+          </div>
+        </div>
+
+        <!-- Invitación a registrarse (si no hay sesión) -->
+        <div id="loginInvite" style="display:none; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.2); border-radius:14px; padding:1.25rem; margin-top:1rem; text-align:center;">
+          <p style="color:var(--muted); font-size:0.85rem; margin-bottom:0.75rem;">Inicia sesión para agendar una visita y guardar favoritos</p>
+          <a href="login.html" style="background:var(--gold); color:var(--obsidian); border-radius:8px; padding:0.65rem 1.5rem; font-weight:700; font-size:0.875rem; display:inline-block;">Iniciar sesión</a>
         </div>
 
         <!-- METADATA CARD -->
@@ -753,7 +834,7 @@
     return (await r.json()).csrfToken;
   }
 
-  (async () => {
+  async function initAuth() {
     const navUser     = document.getElementById('navUser');
     const navLoginBtn = document.getElementById('navLoginBtn');
     try {
@@ -772,7 +853,7 @@
       navUser.classList.add('oculto');
       navLoginBtn.classList.remove('oculto');
     }
-  })();
+  }
 
   document.getElementById('navLogout')?.addEventListener('click', async (e) => {
     e.preventDefault();
@@ -1004,6 +1085,54 @@
         });
       }
 
+      // ── WhatsApp con mensaje pre-llenado ──
+      const wspBtn = document.getElementById('btnWhatsapp');
+      const wspMsg = encodeURIComponent(`¡Hola! Estoy interesado/a en la propiedad: *${p.titulo}* (Ref. #${id}). ¿Podría darme más información?`);
+      wspBtn.href = `https://wa.me/573054152644?text=${wspMsg}`;
+
+      // ── VIDEO ──
+      if (p.video_url) {
+        const videoSection   = document.getElementById('videoSection');
+        const videoContainer = document.getElementById('videoContainer');
+        videoSection.style.display = 'block';
+
+        const isYoutube = /youtube\.com|youtu\.be/.test(p.video_url);
+        if (isYoutube) {
+          const videoId = p.video_url.match(/(?:v=|youtu\.be\/)([^&\s?]+)/)?.[1];
+          if (videoId) {
+            videoContainer.innerHTML = `<iframe width="100%" height="100%"
+              src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1"
+              frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen style="border:none; display:block;"></iframe>`;
+          }
+        } else {
+          videoContainer.innerHTML = `<video controls style="width:100%; height:100%; display:block;">
+            <source src="${p.video_url}">
+            Tu navegador no soporta video HTML5.
+          </video>`;
+        }
+      }
+
+      // ── Agendar visita (solo usuarios logueados) ──
+      if (currentUser) {
+        document.getElementById('agendarCard').style.display = 'block';
+        // Fecha mínima = hoy
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('visitaFecha').min   = hoy;
+        document.getElementById('visitaFecha').value = hoy;
+        // Pre-llenar precio en calculadora
+        if (p.precio) document.getElementById('calcPrecio').value = p.precio;
+      } else {
+        document.getElementById('loginInvite').style.display = 'block';
+        if (p.precio) document.getElementById('calcPrecio').value = p.precio;
+      }
+
+      // ── Precio label según modalidad ──
+      const precioLabel = document.querySelector('.precio-label');
+      if (precioLabel) {
+        precioLabel.textContent = p.modalidad === 'arriendo' ? 'Precio de arriendo / mes' : 'Precio de venta';
+      }
+
     } catch (err) {
       console.error("Error cargando detalle:", err);
     }
@@ -1016,7 +1145,68 @@
     });
   }
 
-  cargarDetalle();
+  // ── CALCULADORA HIPOTECARIA ──────────────────────────────────────────────
+  function calcularCredito() {
+    const precio = parseFloat(document.getElementById('calcPrecio').value);
+    const cuotaPct = parseFloat(document.getElementById('calcCuota').value) / 100;
+    const plazoAnios = parseFloat(document.getElementById('calcPlazo').value);
+    const tasaAnual = parseFloat(document.getElementById('calcTasa').value) / 100;
+
+    if (!precio || !cuotaPct || !plazoAnios || !tasaAnual) {
+      alert('Por favor completa todos los campos de la calculadora.');
+      return;
+    }
+
+    const montoFinanciar = precio * (1 - cuotaPct);
+    const tasaMensual    = tasaAnual / 12;
+    const nMeses         = plazoAnios * 12;
+
+    // Fórmula cuota fija (amortización francesa)
+    const cuota = montoFinanciar * (tasaMensual * Math.pow(1 + tasaMensual, nMeses))
+                  / (Math.pow(1 + tasaMensual, nMeses) - 1);
+
+    const totalPagar = cuota * nMeses;
+    const totalInteres = totalPagar - montoFinanciar;
+
+    const fmt = n => '$ ' + Math.round(n).toLocaleString('es-CO');
+
+    document.getElementById('calcCuotaMensual').textContent = fmt(cuota);
+    document.getElementById('calcDetalle').textContent =
+      `Monto a financiar: ${fmt(montoFinanciar)} · Total intereses: ${fmt(totalInteres)} · Total a pagar: ${fmt(totalPagar)}`;
+    document.getElementById('calcResultado').style.display = 'block';
+  }
+
+  // ── AGENDAR VISITA ───────────────────────────────────────────────────────
+  async function agendarVisita() {
+    const fecha = document.getElementById('visitaFecha').value;
+    const hora  = document.getElementById('visitaHora').value;
+    const nota  = document.getElementById('visitaNota').value;
+    const msg   = document.getElementById('agendarMsg');
+    const id    = new URLSearchParams(window.location.search).get('id');
+
+    if (!fecha || !hora) {
+      msg.style.color = '#f87171';
+      msg.textContent = 'Por favor selecciona fecha y hora.';
+      return;
+    }
+
+    // Construye mensaje de WhatsApp como fallback robusto
+    const propTitulo = document.getElementById('detTitulo')?.textContent || 'propiedad';
+    const wspMsg = encodeURIComponent(
+      `¡Hola! Quiero agendar una visita para la propiedad: *${propTitulo}* (Ref. #${id}).\n📅 Fecha: ${fecha}\n🕐 Hora: ${hora}${nota ? '\n💬 Nota: ' + nota : ''}`
+    );
+    msg.style.color = '#4ade80';
+    msg.textContent = '✅ Solicitud enviada. Te redirigimos a WhatsApp…';
+    setTimeout(() => {
+      window.open(`https://wa.me/573054152644?text=${wspMsg}`, '_blank');
+    }, 800);
+  }
+
+  // ── INIT: primero auth, luego detalle ──
+  (async () => {
+    await initAuth();
+    await cargarDetalle();
+  })();
 </script>
 
 </body>

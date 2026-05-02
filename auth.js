@@ -32,7 +32,8 @@ const registerMessage = document.getElementById('register-message');
 const userWelcome     = document.getElementById('user-welcome');
 const userNameSpan    = document.getElementById('user-name');
 const logoutButton    = document.getElementById('logout-button');
-const toggleButtons   = document.querySelectorAll('.toggle-password');
+
+
 
 function showMessage(el, text, ok = false) {
   el.textContent = text;
@@ -66,13 +67,8 @@ authTabs.forEach(tab => {
   });
 });
 
-toggleButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const input = btn.parentElement.querySelector('input');
-    if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Ocultar'; }
-    else { input.type = 'password'; btn.textContent = 'Mostrar'; }
-  });
-});
+
+
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();

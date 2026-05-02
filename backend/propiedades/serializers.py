@@ -146,9 +146,9 @@ class PropiedadListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Propiedad
         fields = (
-            'id', 'titulo', 'precio', 'tipo', 'estado',
+            'id', 'titulo', 'precio', 'tipo', 'estado', 'modalidad',
             'ciudad', 'ubicacion', 'area', 'habitaciones', 'banos',
-            'imagen_display', 'imagen_url',
+            'imagen_display', 'imagen_url', 'fecha',
         )
 
     def get_imagen_display(self, obj):
@@ -171,10 +171,10 @@ class PropiedadSerializer(serializers.ModelSerializer):
         model  = Propiedad
         fields = (
             'id', 'titulo', 'descripcion', 'precio', 'tipo',
-            'ciudad', 'ubicacion', 'area', 'estado',
+            'ciudad', 'ubicacion', 'area', 'estado', 'modalidad',
             'imagen', 'imagen_display', 'imagen_url',
             'habitaciones', 'banos', 'parqueadero', 'estrato',
-            'fecha',
+            'fecha', 'video_url',
         )
 
     def get_imagen_display(self, obj):

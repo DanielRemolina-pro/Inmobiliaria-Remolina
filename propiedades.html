@@ -61,6 +61,15 @@
         ＋ Nueva propiedad
       </button>
     </div>
+
+    <!-- TABS MODALIDAD -->
+    <div class="container" style="padding-top:0; padding-bottom:0;">
+      <div style="display:flex; gap:0; margin-top:2rem; border-bottom:1px solid var(--border-soft);">
+        <button class="modalidad-tab active" data-modalidad="">🏠 Todas</button>
+        <button class="modalidad-tab" data-modalidad="venta">🏷 Venta</button>
+        <button class="modalidad-tab" data-modalidad="arriendo">🔑 Arriendo</button>
+      </div>
+    </div>
   </div>
 
   <div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
@@ -171,6 +180,15 @@
         </div>
       </div>
 
+      <!-- Modalidad -->
+      <div class="form-group">
+        <label for="f_modalidad">Modalidad <span style="color:var(--gold)">*</span></label>
+        <select id="f_modalidad" name="modalidad" required>
+          <option value="venta">🏷 Venta</option>
+          <option value="arriendo">🔑 Arriendo</option>
+        </select>
+      </div>
+
       <!-- Fila 3: Ciudad / Sector -->
       <div class="form-row">
         <div class="form-group">
@@ -266,7 +284,19 @@
         ⚠ Para crear una propiedad debes agregar una URL de imagen o subir un archivo.
       </p>
 
-      <!-- Fila 10: Descripción -->
+      <!-- Fila 10: Video URL -->
+      <div class="form-group">
+        <label for="f_video_url">
+          Video de la propiedad
+          <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300;">
+            (enlace de YouTube o video directo .mp4)
+          </span>
+        </label>
+        <input type="url" id="f_video_url" name="video_url"
+          placeholder="https://youtube.com/watch?v=... o https://ejemplo.com/video.mp4">
+      </div>
+
+      <!-- Fila 11: Descripción -->
       <div class="form-group">
         <label for="f_descripcion">Descripción</label>
         <textarea id="f_descripcion" name="descripcion" rows="3"
@@ -332,6 +362,7 @@ let favIds      = new Set();
 let propiedades = [];
 let filtered    = [];
 let currentPage = 1;
+let modalidadActiva = '';   // '' = todas, 'venta', 'arriendo'
 const PAGE_SIZE = 12;
 
 // ═══════════════════════════════════════════════════════
@@ -486,6 +517,7 @@ async function cargarPropiedades() {
       ubicacion:   p.ubicacion || '',
       area:        p.area,
       estado:      p.estado || 'disponible',
+      modalidad:   p.modalidad || 'venta',
       fecha:       p.fecha,
       img:         p.imagen_display || p.imagen_url || 'videos/dani.png',
     }));
@@ -513,10 +545,11 @@ function applyFilters() {
       || p.titulo.toLowerCase().includes(search)
       || (p.ubicacion || '').toLowerCase().includes(search)
       || (p.tipo     || '').toLowerCase().includes(search);
-    const matchTipo   = !tipo   || p.tipo === tipo;
-    const matchCiudad = !ciudad || (p.ciudad || '').toLowerCase().includes(ciudad.toLowerCase());
-    const matchPrecio = (p.precio == null) ? true : (p.precio >= min && p.precio <= max);
-    return matchText && matchTipo && matchCiudad && matchPrecio;
+    const matchTipo       = !tipo   || p.tipo === tipo;
+    const matchCiudad     = !ciudad || (p.ciudad || '').toLowerCase().includes(ciudad.toLowerCase());
+    const matchPrecio     = (p.precio == null) ? true : (p.precio >= min && p.precio <= max);
+    const matchModalidad  = !modalidadActiva || p.modalidad === modalidadActiva;
+    return matchText && matchTipo && matchCiudad && matchPrecio && matchModalidad;
   });
 
   if (orden === 'precio-asc')  filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
@@ -561,6 +594,9 @@ function render() {
         <span class="card-badge ${getBadgeClass(p.estado)}">
           ${capitalize(p.estado)}
         </span>
+        <span class="card-modalidad-badge ${p.modalidad === 'arriendo' ? 'arriendo' : 'venta'}">
+          ${p.modalidad === 'arriendo' ? '🔑 Arriendo' : '🏷 Venta'}
+        </span>
         <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
           ${isFav ? '♥' : '♡'}
         </button>
@@ -578,19 +614,13 @@ function render() {
         <div class="card-actions">
           <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
           <a href="index.html#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-          ${currentUser?.is_staff ? `
-            <button class="btn btn-sm btn-edit" data-edit="${p.id}"
-              style="background:rgba(217,119,6,0.15); color:#fbbf24;
-                     border:1px solid rgba(217,119,6,0.35);">
-              ✏ Editar
-            </button>
-            <button class="btn btn-sm btn-delete" data-delete="${p.id}"
-              style="background:rgba(220,38,38,0.12); color:#fca5a5;
-                     border:1px solid rgba(220,38,38,0.3);">
-              🗑 Eliminar
-            </button>
-          ` : ''}
         </div>
+        ${currentUser?.is_staff ? `
+          <div class="admin-card-actions">
+            <button class="admin-card-btn admin-edit" data-edit="${p.id}">✏ Editar</button>
+            <button class="admin-card-btn admin-delete" data-delete="${p.id}">🗑 Eliminar</button>
+          </div>
+        ` : ''}
       </div>`;
 
     // Listeners
@@ -716,6 +746,7 @@ async function abrirModalEditar(id) {
     document.getElementById('f_titulo').value       = p.titulo        || '';
     document.getElementById('f_tipo').value         = p.tipo          || '';
     document.getElementById('f_estado').value       = p.estado        || 'disponible';
+    document.getElementById('f_modalidad').value    = p.modalidad     || 'venta';
     document.getElementById('f_ciudad').value       = p.ciudad        || '';
     document.getElementById('f_ubicacion').value    = p.ubicacion     || '';
     document.getElementById('f_precio').value       = p.precio        ?? '';
@@ -725,6 +756,7 @@ async function abrirModalEditar(id) {
     document.getElementById('f_estrato').value      = p.estrato       ?? '';
     document.getElementById('f_parqueadero').checked = !!p.parqueadero;
     document.getElementById('f_imagen_url').value   = p.imagen_url    || '';
+    document.getElementById('f_video_url').value    = p.video_url     || '';
     document.getElementById('f_descripcion').value  = p.descripcion   || '';
     document.getElementById('f_fecha').value        = p.fecha         || '';
 
@@ -790,6 +822,7 @@ form.addEventListener('submit', async e => {
     ['titulo',       document.getElementById('f_titulo').value.trim()],
     ['tipo',         document.getElementById('f_tipo').value],
     ['estado',       document.getElementById('f_estado').value],
+    ['modalidad',    document.getElementById('f_modalidad').value],
     ['ciudad',       document.getElementById('f_ciudad').value.trim()],
     ['ubicacion',    document.getElementById('f_ubicacion').value.trim()],
     ['precio',       document.getElementById('f_precio').value],
@@ -798,6 +831,7 @@ form.addEventListener('submit', async e => {
     ['banos',        document.getElementById('f_banos').value],
     ['estrato',      document.getElementById('f_estrato').value],
     ['imagen_url',   imagenUrl],
+    ['video_url',    document.getElementById('f_video_url').value.trim()],
     ['descripcion',  document.getElementById('f_descripcion').value.trim()],
     ['fecha',        document.getElementById('f_fecha').value],
   ];
@@ -821,29 +855,27 @@ form.addEventListener('submit', async e => {
     const res = await fetch(url, {
       method,
       headers: { 'X-CSRFToken': csrf },
-      // NO incluir 'Content-Type': el browser lo pone automáticamente con el boundary correcto
       credentials: 'include',
       body: fd,
     });
 
     if (res.ok || res.status === 201) {
-      const prop = await res.json();
       showToast(
         editId ? '✅ Propiedad actualizada correctamente.' : '✅ Propiedad creada correctamente.',
         'success'
       );
       cerrarModal();
-
-      // Refrescar la lista para reflejar los cambios
       await cargarPropiedades();
 
     } else {
-      const errData = await res.json().catch(() => ({}));
+      const errData = await res.json().catch(() => ({ detail: `Error HTTP ${res.status}` }));
+      console.error('Error al guardar:', res.status, errData);
       mostrarErrorModal(parsearErrores(errData));
     }
 
   } catch (err) {
-    mostrarErrorModal('Error de conexión con el servidor.');
+    console.error('Error de red:', err);
+    mostrarErrorModal(`Error de conexión: ${err.message}. ¿Está el servidor Django corriendo?`);
   } finally {
     submitBtn.disabled = false;
     submitLabel.textContent = editId ? 'Guardar cambios' : 'Crear propiedad';
@@ -867,6 +899,18 @@ function parsearErrores(data) {
   });
   return msgs.join('\n') || 'Error al guardar la propiedad.';
 }
+
+// ═══════════════════════════════════════════════════════
+//  TABS MODALIDAD
+// ═══════════════════════════════════════════════════════
+document.querySelectorAll('.modalidad-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.modalidad-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    modalidadActiva = tab.dataset.modalidad;
+    applyFilters();
+  });
+});
 
 // ═══════════════════════════════════════════════════════
 //  FILTROS — listeners
