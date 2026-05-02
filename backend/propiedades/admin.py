@@ -31,13 +31,13 @@ class PerfilInline(admin.StackedInline):
 class PropiedadAdmin(admin.ModelAdmin):
     # ── Lista ─────────────────────────────────────────────────────────────────
     list_display = (
-        'id', 'titulo', 'tipo', 'estado', 'ciudad',
+        'id', 'titulo', 'tipo', 'modalidad', 'estado', 'ciudad',
         'precio_formateado', 'area', 'estrato',
         'habitaciones', 'banos', 'parqueadero',
         'thumbnail', 'fecha',
     )
     list_display_links = ('id', 'titulo')
-    list_filter        = ('tipo', 'estado', 'ciudad', 'parqueadero', 'estrato')
+    list_filter        = ('tipo', 'modalidad', 'estado', 'ciudad', 'parqueadero', 'estrato')
     search_fields      = ('titulo', 'descripcion', 'ciudad', 'ubicacion')
     ordering           = ('-id',)
     list_per_page      = 20
@@ -46,7 +46,7 @@ class PropiedadAdmin(admin.ModelAdmin):
     # ── Formulario de edición ─────────────────────────────────────────────────
     fieldsets = (
         ('Información básica', {
-            'fields': ('titulo', 'descripcion', 'tipo', 'estado'),
+            'fields': ('titulo', 'descripcion', 'tipo', 'estado', 'modalidad'),
         }),
         ('Ubicación', {
             'fields': ('ciudad', 'ubicacion'),
@@ -59,6 +59,10 @@ class PropiedadAdmin(admin.ModelAdmin):
         }),
         ('Imagen', {
             'fields': ('imagen', 'imagen_url', 'imagen_preview'),
+        }),
+        ('Video', {
+            'fields': ('video_url',),
+            'description': 'Pega un enlace de YouTube o video directo (.mp4)',
         }),
         ('Fechas', {
             'fields': ('fecha',),

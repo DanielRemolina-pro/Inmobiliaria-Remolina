@@ -149,8 +149,8 @@ class PropiedadViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=['get'], url_path='destacadas')
     def destacadas(self, request):
-        """GET /api/propiedades/destacadas/"""
-        qs = Propiedad.objects.filter(estado='disponible').order_by('-id')[:6]
+        """GET /api/propiedades/destacadas/ — las 4 más recientes de la BD"""
+        qs = Propiedad.objects.order_by('-id')[:4]
         serializer = PropiedadListSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
 

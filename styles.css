@@ -1279,13 +1279,15 @@ img { display: block; max-width: 100%; }
   background: transparent;
   border: none;
   color: var(--gold);
-  font-size: 0.78rem;
-  font-family: var(--ff-body);
-  font-weight: 500;
+  font-size: 1.1rem;
   cursor: pointer;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  padding: 0.25rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.15s;
+  user-select: none;
 }
+.toggle-password:hover { opacity: 1; transform: translateY(-50%) scale(1.15); }
 
 .auth-message {
   font-size: 0.875rem;
@@ -2055,3 +2057,75 @@ footer {
   border: 2px solid var(--gold);
   opacity: 1;
 }
+/* ─── TABS MODALIDAD (Venta / Arriendo) ─────────────────────────────────────── */
+.modalidad-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--ivory-dimmer);
+  font-family: var(--ff-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+  margin-bottom: -1px;
+}
+.modalidad-tab:hover { color: var(--ivory); }
+.modalidad-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* ─── BADGE MODALIDAD en cards ───────────────────────────────────────────────── */
+.card-modalidad-badge {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  top: auto;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+}
+.card-modalidad-badge.venta {
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+}
+.card-modalidad-badge.arriendo {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+/* ─── FRANJA ADMIN en cards (solo is_staff) ─────────────────────────────────── */
+.admin-card-actions {
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.admin-card-btn {
+  flex: 1;
+  padding: 0.6rem 0;
+  border: none;
+  background: transparent;
+  font-family: var(--ff-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+  letter-spacing: 0.02em;
+}
+
+.admin-edit {
+  color: #fbbf24;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.admin-edit:hover { background: rgba(217,119,6,0.15); }
+
+.admin-delete { color: #f87171; }
+.admin-delete:hover { background: rgba(220,38,38,0.12); }

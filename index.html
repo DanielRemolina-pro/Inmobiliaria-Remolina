@@ -277,7 +277,6 @@
         <a href="login.html">Iniciar sesión</a>
         <a href="login.html#registro">Registrarse</a>
         <a href="favoritos.html">Mis favoritos</a>
-        <a href="citas.html">Mis citas</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -487,7 +486,8 @@ async function loadDestacadas() {
       return;
     }
 
-    data.forEach((p, i) => grid.appendChild(buildCard(p, i * 0.1)));
+    // Mostrar máximo 4
+    data.slice(0, 4).forEach((p, i) => grid.appendChild(buildCard(p, i * 0.1)));
     grid.style.display = '';
 
     const obs = new IntersectionObserver(entries => {
