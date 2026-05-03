@@ -976,6 +976,12 @@ if (urlParams.get('tipo')) document.getElementById('tipoFilter').value = urlPara
 (async () => {
   await initAuth();
   await cargarPropiedades();
+
+  // Si viene de detalle.html con ?editar=ID, abrir modal directo
+  const editarId = new URLSearchParams(window.location.search).get('editar');
+  if (editarId && currentUser?.is_staff) {
+    await abrirModalEditar(parseInt(editarId));
+  }
 })();
 </script>
 </body>

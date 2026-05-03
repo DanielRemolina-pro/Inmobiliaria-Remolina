@@ -2129,3 +2129,15 @@ footer {
 
 .admin-delete { color: #f87171; }
 .admin-delete:hover { background: rgba(220,38,38,0.12); }
+
+/* ─── BOTONES ADMIN subir media en detalle ───────────────────────────────────── */
+.admin-upload-btn {
+  cursor: pointer;
+  border: 1px dashed rgba(201,168,76,0.4) !important;
+  color: var(--gold) !important;
+  transition: background 0.2s, border-color 0.2s;
+}
+.admin-upload-btn:hover {
+  background: rgba(201,168,76,0.08);
+  border-color: var(--gold) !important;
+}

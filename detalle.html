@@ -616,30 +616,8 @@
           </div>
         </div>
 
-        <!-- THUMBNAIL STRIP -->
-        <div class="thumb-strip" id="thumbStrip">
-          <div class="thumb-placeholder" title="Agregar imagen">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="3"/>
-              <path d="M12 8v8M8 12h8"/>
-            </svg>
-            <span>+ Foto</span>
-          </div>
-          <div class="thumb-placeholder" title="Agregar imagen">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="3"/>
-              <path d="M12 8v8M8 12h8"/>
-            </svg>
-            <span>+ Foto</span>
-          </div>
-          <div class="thumb-placeholder" title="Agregar imagen">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="3"/>
-              <path d="M12 8v8M8 12h8"/>
-            </svg>
-            <span>+ Foto</span>
-          </div>
-        </div>
+        <!-- THUMBNAIL STRIP — se llena dinámicamente vía JS -->
+        <div class="thumb-strip" id="thumbStrip"></div>
 
         <!-- Separador -->
         <div class="det-sep" style="margin-top:2rem;"></div>
@@ -748,23 +726,23 @@
         <!-- AGENDAR VISITA (visible solo si hay sesión) -->
         <div id="agendarCard" style="display:none; background:var(--obsidian-3); border:1px solid var(--border-soft); border-radius:14px; padding:1.5rem; margin-top:1rem;">
           <h3 style="font-family:var(--font-display); font-size:1.2rem; font-weight:400; color:var(--white); margin-bottom:0.25rem;">📅 Agendar visita</h3>
-          <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1.25rem;">Solicita una visita y nos ponemos en contacto contigo</p>
+          <p style="color:var(--muted); font-size:0.82rem; margin-bottom:1.25rem;">Disponible de lunes a sábado, hasta 7 días adelante</p>
           <div style="display:flex; flex-direction:column; gap:0.75rem;">
-            <input type="date" id="visitaFecha" min=""
-              style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
-            <select id="visitaHora"
-              style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
-              <option value="">Selecciona una hora</option>
-              <option value="09:00">9:00 AM</option>
-              <option value="10:00">10:00 AM</option>
-              <option value="11:00">11:00 AM</option>
-              <option value="14:00">2:00 PM</option>
-              <option value="15:00">3:00 PM</option>
-              <option value="16:00">4:00 PM</option>
-            </select>
+            <div>
+              <label style="display:block; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Fecha</label>
+              <input type="date" id="visitaFecha"
+                style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Hora disponible</label>
+              <select id="visitaHora"
+                style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; width:100%;">
+                <option value="">— Selecciona una fecha primero —</option>
+              </select>
+            </div>
             <textarea id="visitaNota" placeholder="Mensaje opcional al asesor…" rows="2"
               style="background:var(--obsidian); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.875rem; outline:none; resize:none; width:100%;"></textarea>
-            <button onclick="agendarVisita()"
+            <button id="btnAgendarVisita" onclick="agendarVisita()"
               style="background:var(--gold); color:var(--obsidian); border:none; border-radius:8px; padding:0.85rem; font-weight:700; cursor:pointer; font-size:0.9rem; transition:0.2s;">
               Solicitar visita
             </button>
@@ -1017,6 +995,7 @@
 
       // Thumbnails
       const strip = document.getElementById('thumbStrip');
+
       const thumbsHTML = allImgs.map((src, i) => `
         <div class="thumb-item ${i === 0 ? 'active' : ''}"
              onclick="seleccionarThumb(${i})">
@@ -1024,17 +1003,26 @@
         </div>
       `).join('');
 
-      // Placeholders al final
-      const phCount = Math.max(0, 3 - allImgs.length);
-      const phHTML = Array.from({length: phCount}).map(() => `
-        <div class="thumb-placeholder">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="3"/>
-            <path d="M12 8v8M8 12h8"/>
-          </svg>
-          <span>+ Foto</span>
-        </div>
-      `).join('');
+      // Placeholders "+ Foto" y "+ Video" — SOLO para admin
+      let phHTML = '';
+      if (currentUser?.is_staff) {
+        phHTML = `
+          <div class="thumb-placeholder admin-upload-btn" title="Agregar imagen" onclick="abrirModalMedia('imagen')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="3"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span>+ Foto</span>
+          </div>
+          <div class="thumb-placeholder admin-upload-btn" title="Agregar video URL" onclick="abrirModalMedia('video')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="9"/>
+              <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/>
+            </svg>
+            <span>+ Video</span>
+          </div>
+        `;
+      }
 
       strip.innerHTML = thumbsHTML + phHTML;
 
@@ -1051,7 +1039,7 @@
             <span style="flex:1;color:var(--ivory-dim,#aaa);font-size:0.85rem;align-self:center;">
               ⚙ Panel de administrador
             </span>
-            <a href="admin-editar.html?id=${id}"
+            <a href="propiedades.html?editar=${id}"
                style="padding:0.5rem 1.25rem;background:#d97706;color:#fff;border-radius:0.4rem;font-size:0.9rem;text-decoration:none;">
               ✏ Editar propiedad
             </a>
@@ -1116,12 +1104,23 @@
       // ── Agendar visita (solo usuarios logueados) ──
       if (currentUser) {
         document.getElementById('agendarCard').style.display = 'block';
-        // Fecha mínima = hoy
-        const hoy = new Date().toISOString().split('T')[0];
-        document.getElementById('visitaFecha').min   = hoy;
-        document.getElementById('visitaFecha').value = hoy;
-        // Pre-llenar precio en calculadora
         if (p.precio) document.getElementById('calcPrecio').value = p.precio;
+
+        // Fecha: desde mañana hasta 7 días adelante
+        const hoy     = new Date();
+        const manana  = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+        const maxDia  = new Date(hoy); maxDia.setDate(hoy.getDate() + 7);
+
+        const toISO = d => d.toISOString().split('T')[0];
+        const fechaInput = document.getElementById('visitaFecha');
+        fechaInput.min   = toISO(manana);
+        fechaInput.max   = toISO(maxDia);
+        fechaInput.value = toISO(manana);
+
+        // Al cambiar fecha → cargar horas disponibles
+        fechaInput.addEventListener('change', () => cargarHorasDisponibles(id, fechaInput.value));
+        cargarHorasDisponibles(id, toISO(manana));
+
       } else {
         document.getElementById('loginInvite').style.display = 'block';
         if (p.precio) document.getElementById('calcPrecio').value = p.precio;
@@ -1176,13 +1175,69 @@
     document.getElementById('calcResultado').style.display = 'block';
   }
 
+  // ── HORAS DISPONIBLES ────────────────────────────────────────────────────
+  const TODAS_HORAS = [
+    { valor: '09:00', label: '9:00 AM' },
+    { valor: '10:00', label: '10:00 AM' },
+    { valor: '11:00', label: '11:00 AM' },
+    { valor: '14:00', label: '2:00 PM' },
+    { valor: '15:00', label: '3:00 PM' },
+    { valor: '16:00', label: '4:00 PM' },
+  ];
+
+  async function cargarHorasDisponibles(propiedadId, fecha) {
+    const select = document.getElementById('visitaHora');
+    select.innerHTML = '<option value="">Cargando disponibilidad…</option>';
+    select.disabled  = true;
+
+    try {
+      const res  = await fetch(
+        `http://127.0.0.1:8000/api/visitas/horas_ocupadas/?propiedad=${propiedadId}&fecha=${fecha}`,
+        { credentials: 'include' }
+      );
+      const data = await res.json();
+      const ocupadas = data.horas_ocupadas || [];
+
+      select.innerHTML = '';
+      let hayDisponibles = false;
+
+      TODAS_HORAS.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.valor;
+        if (ocupadas.includes(h.valor)) {
+          opt.textContent = `${h.label} — Ocupada`;
+          opt.disabled    = true;
+          opt.style.color = '#6b7280';
+        } else {
+          opt.textContent = h.label;
+          hayDisponibles  = true;
+        }
+        select.appendChild(opt);
+      });
+
+      // Seleccionar automáticamente la primera disponible
+      const primera = select.querySelector('option:not([disabled])');
+      if (primera) primera.selected = true;
+
+      if (!hayDisponibles) {
+        select.innerHTML = '<option value="">No hay horas disponibles este día</option>';
+      }
+
+    } catch {
+      select.innerHTML = '<option value="">Error al cargar horas</option>';
+    } finally {
+      select.disabled = false;
+    }
+  }
+
   // ── AGENDAR VISITA ───────────────────────────────────────────────────────
   async function agendarVisita() {
+    const propiedadId = new URLSearchParams(window.location.search).get('id');
     const fecha = document.getElementById('visitaFecha').value;
     const hora  = document.getElementById('visitaHora').value;
     const nota  = document.getElementById('visitaNota').value;
     const msg   = document.getElementById('agendarMsg');
-    const id    = new URLSearchParams(window.location.search).get('id');
+    const btn   = document.getElementById('btnAgendarVisita');
 
     if (!fecha || !hora) {
       msg.style.color = '#f87171';
@@ -1190,24 +1245,225 @@
       return;
     }
 
-    // Construye mensaje de WhatsApp como fallback robusto
-    const propTitulo = document.getElementById('detTitulo')?.textContent || 'propiedad';
-    const wspMsg = encodeURIComponent(
-      `¡Hola! Quiero agendar una visita para la propiedad: *${propTitulo}* (Ref. #${id}).\n📅 Fecha: ${fecha}\n🕐 Hora: ${hora}${nota ? '\n💬 Nota: ' + nota : ''}`
-    );
-    msg.style.color = '#4ade80';
-    msg.textContent = '✅ Solicitud enviada. Te redirigimos a WhatsApp…';
-    setTimeout(() => {
-      window.open(`https://wa.me/573054152644?text=${wspMsg}`, '_blank');
-    }, 800);
+    btn.disabled     = true;
+    btn.textContent  = 'Guardando…';
+    msg.textContent  = '';
+
+    try {
+      // Obtener CSRF
+      const csrfRes = await fetch('http://127.0.0.1:8000/api/auth/csrf/', { credentials: 'include' });
+      const { csrfToken } = await csrfRes.json();
+
+      const res = await fetch('http://127.0.0.1:8000/api/visitas/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+          propiedad: parseInt(propiedadId),
+          fecha,
+          hora,
+          nota,
+        }),
+      });
+
+      if (res.ok) {
+        msg.style.color = '#4ade80';
+        msg.textContent = '✅ ¡Visita agendada! Te abrimos WhatsApp para confirmación.';
+        btn.textContent = '✅ Agendada';
+
+        // Recargar horas para que la que se acaba de tomar aparezca ocupada
+        cargarHorasDisponibles(propiedadId, fecha);
+
+        // Abrir WhatsApp con los datos
+        const propTitulo = document.getElementById('detTitulo')?.textContent || 'propiedad';
+        const horaLabel  = TODAS_HORAS.find(h => h.valor === hora)?.label || hora;
+        const wspMsg     = encodeURIComponent(
+          `¡Hola! Acabo de agendar una visita:\n🏠 *${propTitulo}* (Ref. #${propiedadId})\n📅 Fecha: ${fecha}\n🕐 Hora: ${horaLabel}${nota ? '\n💬 Nota: ' + nota : ''}`
+        );
+        setTimeout(() => window.open(`https://wa.me/573054152644?text=${wspMsg}`, '_blank'), 1200);
+
+      } else {
+        const err = await res.json().catch(() => ({}));
+        const errMsg = err?.hora?.[0] || err?.fecha?.[0] || err?.detail || 'No se pudo agendar la visita.';
+        msg.style.color = '#f87171';
+        msg.textContent = `❌ ${errMsg}`;
+        btn.disabled    = false;
+        btn.textContent = 'Solicitar visita';
+        // Recargar horas por si cambió la disponibilidad
+        cargarHorasDisponibles(propiedadId, fecha);
+      }
+
+    } catch (e) {
+      msg.style.color = '#f87171';
+      msg.textContent = '❌ Error de conexión. ¿Está el servidor activo?';
+      btn.disabled    = false;
+      btn.textContent = 'Solicitar visita';
+    }
   }
 
-  // ── INIT: primero auth, luego detalle ──
+  // ── MODAL SUBIR IMAGEN / VIDEO (solo admin) ──────────────────────────────
+  function abrirModalMedia(tipo) {
+    document.getElementById('modalMediaOverlay').style.display = 'flex';
+    document.getElementById('modalMediaTipo').value = tipo;
+    document.getElementById('modalMediaTitulo').textContent =
+      tipo === 'imagen' ? '📷 Agregar imagen' : '🎬 Agregar video';
+    document.getElementById('mediaImagenGroup').style.display = tipo === 'imagen' ? 'block' : 'none';
+    document.getElementById('mediaVideoGroup').style.display  = tipo === 'video'  ? 'block' : 'none';
+    document.getElementById('mediaMsg').textContent = '';
+  }
+
+  function cerrarModalMedia() {
+    document.getElementById('modalMediaOverlay').style.display = 'none';
+    document.getElementById('mediaFileInput').value  = '';
+    document.getElementById('mediaUrlInput').value   = '';
+    document.getElementById('mediaVideoUrl').value   = '';
+    document.getElementById('mediaMsg').textContent  = '';
+  }
+
+  async function guardarMedia() {
+    const tipo     = document.getElementById('modalMediaTipo').value;
+    const propId   = new URLSearchParams(window.location.search).get('id');
+    const msg      = document.getElementById('mediaMsg');
+    const btn      = document.getElementById('btnGuardarMedia');
+
+    btn.disabled    = true;
+    btn.textContent = 'Guardando…';
+    msg.textContent = '';
+
+    try {
+      const csrfRes   = await fetch('http://127.0.0.1:8000/api/auth/csrf/', { credentials: 'include' });
+      const { csrfToken } = await csrfRes.json();
+
+      if (tipo === 'video') {
+        // Guardar video_url en la propiedad via PATCH
+        const videoUrl = document.getElementById('mediaVideoUrl').value.trim();
+        if (!videoUrl) { msg.style.color='#f87171'; msg.textContent='Pega la URL del video.'; return; }
+
+        const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${propId}/`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ video_url: videoUrl }),
+        });
+        if (res.ok) {
+          msg.style.color = '#4ade80';
+          msg.textContent = '✅ Video guardado. Recargando…';
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          throw new Error('Error al guardar video');
+        }
+
+      } else {
+        // Imagen: archivo o URL
+        const file    = document.getElementById('mediaFileInput').files[0];
+        const urlVal  = document.getElementById('mediaUrlInput').value.trim();
+
+        if (!file && !urlVal) { msg.style.color='#f87171'; msg.textContent='Selecciona un archivo o pega una URL.'; return; }
+
+        const fd = new FormData();
+        if (file)   fd.append('imagen',     file);
+        if (urlVal) fd.append('imagen_url', urlVal);
+
+        const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${propId}/`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'X-CSRFToken': csrfToken },
+          body: fd,
+        });
+        if (res.ok) {
+          msg.style.color = '#4ade80';
+          msg.textContent = '✅ Imagen guardada. Recargando…';
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          throw new Error('Error al guardar imagen');
+        }
+      }
+    } catch (e) {
+      msg.style.color = '#f87171';
+      msg.textContent = `❌ ${e.message}`;
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Guardar';
+    }
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
   (async () => {
     await initAuth();
     await cargarDetalle();
   })();
 </script>
+
+<!-- ═══ MODAL SUBIR IMAGEN / VIDEO (admin) ═══ -->
+<div id="modalMediaOverlay" style="
+  display:none; position:fixed; inset:0; z-index:9000;
+  background:rgba(10,10,12,0.85); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:1rem;
+">
+  <div style="
+    background:var(--obsidian-3); border:1px solid var(--border);
+    border-radius:16px; padding:2rem; width:100%; max-width:420px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  ">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h3 id="modalMediaTitulo" style="font-family:var(--ff-display); font-size:1.3rem; font-weight:300; color:var(--ivory); margin:0;"></h3>
+      <button onclick="cerrarModalMedia()" style="background:transparent; border:none; color:var(--ivory-dimmer); font-size:1.4rem; cursor:pointer; line-height:1;">✕</button>
+    </div>
+
+    <input type="hidden" id="modalMediaTipo">
+
+    <!-- Imagen -->
+    <div id="mediaImagenGroup">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem;">Subir archivo</label>
+        <input type="file" id="mediaFileInput" accept="image/*"
+          style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft);
+                 border-radius:8px; padding:0.7rem 1rem; color:var(--ivory);
+                 font-family:var(--ff-body); font-size:0.85rem; cursor:pointer;">
+      </div>
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem; color:var(--muted); font-size:0.8rem;">
+        <div style="flex:1; height:1px; background:var(--border-soft);"></div> o <div style="flex:1; height:1px; background:var(--border-soft);"></div>
+      </div>
+      <div>
+        <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem;">URL de imagen externa</label>
+        <input type="url" id="mediaUrlInput" placeholder="https://ejemplo.com/foto.jpg"
+          style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft);
+                 border-radius:8px; padding:0.75rem 1rem; color:var(--ivory);
+                 font-family:var(--ff-body); font-size:0.875rem; outline:none;">
+      </div>
+    </div>
+
+    <!-- Video -->
+    <div id="mediaVideoGroup" style="display:none;">
+      <label style="display:block; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem;">URL del video</label>
+      <input type="url" id="mediaVideoUrl" placeholder="https://youtube.com/watch?v=... o .mp4"
+        style="width:100%; background:var(--obsidian); border:1px solid var(--border-soft);
+               border-radius:8px; padding:0.75rem 1rem; color:var(--ivory);
+               font-family:var(--ff-body); font-size:0.875rem; outline:none;">
+      <p style="color:var(--muted); font-size:0.78rem; margin-top:0.5rem;">Acepta links de YouTube o video directo (.mp4)</p>
+    </div>
+
+    <p id="mediaMsg" style="text-align:center; font-size:0.82rem; min-height:1rem; margin-top:1rem;"></p>
+
+    <div style="display:flex; gap:0.75rem; margin-top:1.25rem;">
+      <button onclick="cerrarModalMedia()"
+        style="flex:1; padding:0.85rem; border-radius:8px; background:transparent;
+               border:1px solid var(--border-soft); color:var(--ivory-dimmer);
+               font-family:var(--ff-body); cursor:pointer;">
+        Cancelar
+      </button>
+      <button id="btnGuardarMedia" onclick="guardarMedia()"
+        style="flex:2; padding:0.85rem; border-radius:8px; background:var(--gold);
+               border:none; color:var(--obsidian); font-family:var(--ff-body);
+               font-weight:700; cursor:pointer;">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

@@ -277,6 +277,7 @@
         <a href="login.html">Iniciar sesión</a>
         <a href="login.html#registro">Registrarse</a>
         <a href="favoritos.html">Mis favoritos</a>
+        <a href="citas.html">Mis citas</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -587,5 +588,164 @@ document.querySelector('.hero-video-wrap video')?.addEventListener('error', () =
 </script>
 
 <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+<!-- ═══ TÉRMINOS Y CONDICIONES ═══ -->
+<div id="terminosOverlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(10,10,12,0.92);
+  backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  padding:1rem;
+">
+  <div style="
+    background:var(--obsidian-3);
+    border:1px solid var(--border);
+    border-radius:20px;
+    max-width:520px; width:100%;
+    padding:2.5rem;
+    box-shadow:0 32px 80px rgba(0,0,0,0.6);
+    position:relative;
+  ">
+    <!-- Logo -->
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.75rem;">
+      <img src="videos/logo.png" alt="Logo" style="width:40px; height:40px; object-fit:contain; border-radius:8px;">
+      <div>
+        <span style="font-family:var(--ff-display); font-size:1.1rem; color:var(--ivory); display:block; line-height:1;">Remolina</span>
+        <span style="font-size:0.72rem; color:var(--gold); letter-spacing:0.12em; text-transform:uppercase;">Inmobiliaria</span>
+      </div>
+    </div>
+
+    <h2 style="font-family:var(--ff-display); font-size:1.5rem; font-weight:300; color:var(--ivory); margin-bottom:0.5rem;">
+      Términos y condiciones
+    </h2>
+    <p style="color:var(--ivory-dimmer); font-size:0.85rem; margin-bottom:1.25rem;">
+      Antes de continuar, por favor lee y acepta nuestros términos de uso.
+    </p>
+
+    <!-- Caja de texto con scroll -->
+    <div style="
+      background:var(--obsidian);
+      border:1px solid var(--border-soft);
+      border-radius:10px;
+      padding:1.25rem;
+      height:180px;
+      overflow-y:auto;
+      font-size:0.82rem;
+      color:var(--ivory-dimmer);
+      line-height:1.7;
+      margin-bottom:1.25rem;
+    ">
+      <p><strong style="color:var(--ivory);">1. Uso del sitio</strong><br>
+      Este sitio web es propiedad de Remolina Inmobiliaria y está destinado exclusivamente a la consulta de propiedades en venta y arriendo. El acceso y uso de este sitio implica la aceptación de estos términos.</p>
+
+      <p style="margin-top:1rem;"><strong style="color:var(--ivory);">2. Información de propiedades</strong><br>
+      La información publicada sobre propiedades es de carácter informativo. Los precios, disponibilidad y características pueden variar. Remolina Inmobiliaria no se hace responsable por errores tipográficos u omisiones.</p>
+
+      <p style="margin-top:1rem;"><strong style="color:var(--ivory);">3. Datos personales</strong><br>
+      Los datos que proporciones al registrarte o contactarnos serán utilizados únicamente para gestionar tu solicitud y mejorar tu experiencia. No compartimos tu información con terceros sin tu consentimiento.</p>
+
+      <p style="margin-top:1rem;"><strong style="color:var(--ivory);">4. Propiedad intelectual</strong><br>
+      Todo el contenido de este sitio — imágenes, textos, logotipos y diseño — es propiedad de Remolina Inmobiliaria y está protegido por las leyes de derechos de autor.</p>
+
+      <p style="margin-top:1rem;"><strong style="color:var(--ivory);">5. Contacto</strong><br>
+      Para cualquier inquietud sobre estos términos puedes contactarnos a través del formulario de contacto o al WhatsApp oficial de la inmobiliaria.</p>
+    </div>
+
+    <!-- Checkbox -->
+    <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; margin-bottom:1.5rem;">
+      <input type="checkbox" id="checkTerminos" style="
+        width:18px; height:18px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;
+      ">
+      <span style="font-size:0.85rem; color:var(--ivory-dimmer);">
+        He leído y acepto los <span style="color:var(--gold);">términos y condiciones</span> de Remolina Inmobiliaria
+      </span>
+    </label>
+
+    <!-- Botones -->
+    <div style="display:flex; gap:0.75rem;">
+      <button onclick="rechazarTerminos()" style="
+        flex:1; padding:0.9rem; border-radius:10px;
+        background:transparent; border:1px solid var(--border-soft);
+        color:var(--ivory-dimmer); font-family:var(--ff-body);
+        font-size:0.875rem; cursor:pointer; transition:0.2s;
+      " onmouseover="this.style.borderColor='#f87171'; this.style.color='#f87171';"
+         onmouseout="this.style.borderColor=''; this.style.color='';">
+        No acepto
+      </button>
+      <button onclick="aceptarTerminos()" id="btnAceptar" disabled style="
+        flex:2; padding:0.9rem; border-radius:10px;
+        background:var(--gold); border:none;
+        color:var(--obsidian); font-family:var(--ff-body);
+        font-weight:700; font-size:0.875rem;
+        cursor:not-allowed; opacity:0.4; transition:0.2s;
+      ">
+        Acepto y entro al sitio
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Página bloqueada si no acepta -->
+<div id="bloqueado" style="
+  display:none; position:fixed; inset:0; z-index:9998;
+  background:var(--obsidian);
+  flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  padding:2rem;
+">
+  <img src="videos/logo.png" alt="Logo" style="width:64px; opacity:0.4; margin-bottom:1.5rem;">
+  <h2 style="font-family:var(--ff-display); font-size:1.8rem; font-weight:300; color:var(--ivory-dimmer); margin-bottom:0.75rem;">
+    Acceso restringido
+  </h2>
+  <p style="color:var(--ivory-dimmer); font-size:0.9rem; max-width:380px; line-height:1.6; margin-bottom:1.5rem;">
+    Para acceder a Remolina Inmobiliaria debes aceptar los términos y condiciones de uso.
+  </p>
+  <button onclick="volverATerminos()" style="
+    background:var(--gold); color:var(--obsidian); border:none;
+    border-radius:10px; padding:0.9rem 2rem;
+    font-family:var(--ff-body); font-weight:700; font-size:0.9rem; cursor:pointer;
+  ">
+    Volver y aceptar
+  </button>
+</div>
+
+<script>
+  // Si ya aceptó antes, no mostrar el modal
+  if (localStorage.getItem('terminosAceptados') === 'si') {
+    document.getElementById('terminosOverlay').style.display = 'none';
+  } else {
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Habilitar botón solo si marca el checkbox
+  document.getElementById('checkTerminos').addEventListener('change', function() {
+    const btn = document.getElementById('btnAceptar');
+    btn.disabled = !this.checked;
+    btn.style.opacity    = this.checked ? '1'            : '0.4';
+    btn.style.cursor     = this.checked ? 'pointer'      : 'not-allowed';
+  });
+
+  function aceptarTerminos() {
+    localStorage.setItem('terminosAceptados', 'si');
+    document.getElementById('terminosOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function rechazarTerminos() {
+    document.getElementById('terminosOverlay').style.display = 'none';
+    const bloqueado = document.getElementById('bloqueado');
+    bloqueado.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function volverATerminos() {
+    document.getElementById('bloqueado').style.display = 'none';
+    document.getElementById('terminosOverlay').style.display = 'flex';
+    document.getElementById('checkTerminos').checked = false;
+    const btn = document.getElementById('btnAceptar');
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor  = 'not-allowed';
+  }
+</script>
+
 </body>
 </html>
