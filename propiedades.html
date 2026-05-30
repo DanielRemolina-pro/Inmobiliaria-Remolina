@@ -346,13 +346,14 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="app-config.js"></script>
 <script type="module">
 // ═══════════════════════════════════════════════════════
 //  CONSTANTES
 // ═══════════════════════════════════════════════════════
-const API_AUTH = 'http://127.0.0.1:8000/api/auth';
-const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
-const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
+const API_AUTH = window.APP_CONFIG.authApi;
+const API_PROP = window.APP_CONFIG.propiedadesApi;
+const API_FAV  = window.APP_CONFIG.favoritosApi;
 
 // ═══════════════════════════════════════════════════════
 //  ESTADO GLOBAL
@@ -360,10 +361,12 @@ const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
 let currentUser = null;
 let favIds      = new Set();
 let propiedades = [];
-let filtered    = [];
 let currentPage = 1;
 let modalidadActiva = '';   // '' = todas, 'venta', 'arriendo'
+let totalPropiedades = 0;
+let totalPages = 1;
 const PAGE_SIZE = 12;
+let filtrosTimer = null;
 
 // ═══════════════════════════════════════════════════════
 //  HELPERS
@@ -392,6 +395,26 @@ function formatPrecio(p) {
 function formatArea(a) {
   if (!a) return '—';
   return a >= 10000 ? (a / 10000).toFixed(1) + ' ha' : a + ' m²';
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeMediaUrl(value) {
+  if (!value) return 'videos/dani.png';
+  try {
+    const url = new URL(value, window.location.origin);
+    if (['http:', 'https:'].includes(url.protocol)) return url.href;
+  } catch {
+    return 'videos/dani.png';
+  }
+  return 'videos/dani.png';
 }
 
 function getBadgeClass(estado) {
@@ -485,29 +508,14 @@ async function toggleFav(propId, btn) {
 // ═══════════════════════════════════════════════════════
 async function cargarPropiedades() {
   try {
-    // Obtiene todas las páginas en paralelo o en secuencia
-    // Primer fetch para saber cuántas hay
-    const primera = await fetch(`${API_PROP}/?page=1`, { credentials: 'include' });
-    const d1      = await primera.json();
-    const total   = d1.count || 0;
-    const results = [...(d1.results || [])];
+    const params = buildQueryParams();
+    const res = await fetch(`${API_PROP}/?${params.toString()}`, { credentials: 'include' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-    // Si hay más páginas, cargarlas
-    const totalPaginas = Math.ceil(total / 12);
-    if (totalPaginas > 1) {
-      const promesas = [];
-      for (let p = 2; p <= totalPaginas; p++) {
-        promesas.push(
-          fetch(`${API_PROP}/?page=${p}`, { credentials: 'include' })
-            .then(r => r.json())
-            .then(d => d.results || [])
-        );
-      }
-      const resto = await Promise.all(promesas);
-      resto.forEach(r => results.push(...r));
-    }
-
-    propiedades = results.map(p => ({
+    totalPropiedades = data.count || 0;
+    totalPages = Math.max(1, Math.ceil(totalPropiedades / PAGE_SIZE));
+    propiedades = (data.results || []).map(p => ({
       id:          p.id,
       titulo:      p.titulo,
       precio:      p.precio,
@@ -522,9 +530,13 @@ async function cargarPropiedades() {
       img:         p.imagen_display || p.imagen_url || 'videos/dani.png',
     }));
 
-    applyFilters();
+    render();
   } catch (err) {
     console.error('Error cargando propiedades:', err);
+    propiedades = [];
+    totalPropiedades = 0;
+    totalPages = 1;
+    render();
     showToast('Error al cargar propiedades', 'error');
   }
 }
@@ -532,33 +544,44 @@ async function cargarPropiedades() {
 // ═══════════════════════════════════════════════════════
 //  FILTROS
 // ═══════════════════════════════════════════════════════
-function applyFilters() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
+function buildQueryParams() {
+  const params = new URLSearchParams();
+  const search = document.getElementById('searchInput').value.trim();
   const tipo   = document.getElementById('tipoFilter').value;
   const ciudad = document.getElementById('ciudadFilter').value;
   const orden  = document.getElementById('ordenFilter').value;
-  const min    = parseFloat(document.getElementById('precioMin').value) || 0;
-  const max    = parseFloat(document.getElementById('precioMax').value) || Infinity;
+  const min    = document.getElementById('precioMin').value.trim();
+  const max    = document.getElementById('precioMax').value.trim();
 
-  filtered = propiedades.filter(p => {
-    const matchText   = !search
-      || p.titulo.toLowerCase().includes(search)
-      || (p.ubicacion || '').toLowerCase().includes(search)
-      || (p.tipo     || '').toLowerCase().includes(search);
-    const matchTipo       = !tipo   || p.tipo === tipo;
-    const matchCiudad     = !ciudad || (p.ciudad || '').toLowerCase().includes(ciudad.toLowerCase());
-    const matchPrecio     = (p.precio == null) ? true : (p.precio >= min && p.precio <= max);
-    const matchModalidad  = !modalidadActiva || p.modalidad === modalidadActiva;
-    return matchText && matchTipo && matchCiudad && matchPrecio && matchModalidad;
-  });
+  params.set('page', String(currentPage));
+  if (search) params.set('search', search);
+  if (tipo) params.set('tipo', tipo);
+  if (ciudad) params.set('ciudad', ciudad);
+  if (min) params.set('precio_min', min);
+  if (max) params.set('precio_max', max);
+  if (modalidadActiva) params.set('modalidad', modalidadActiva);
 
-  if (orden === 'precio-asc')  filtered.sort((a, b) => (a.precio || 0) - (b.precio || 0));
-  if (orden === 'precio-desc') filtered.sort((a, b) => (b.precio || 0) - (a.precio || 0));
-  if (orden === 'area-desc')   filtered.sort((a, b) => (b.area || 0) - (a.area || 0));
-  if (orden === 'reciente')    filtered.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  const orderingMap = {
+    'precio-asc': 'precio',
+    'precio-desc': '-precio',
+    'area-desc': '-area',
+    'reciente': '-fecha',
+  };
+  if (orderingMap[orden]) params.set('ordering', orderingMap[orden]);
 
+  return params;
+}
+
+function applyFilters() {
   currentPage = 1;
-  render();
+  cargarPropiedades();
+}
+
+function applyFiltersDebounced() {
+  clearTimeout(filtrosTimer);
+  filtrosTimer = setTimeout(() => {
+    applyFilters();
+  }, 250);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -567,10 +590,9 @@ function applyFilters() {
 function render() {
   const grid  = document.getElementById('propiedadesGrid');
   const empty = document.getElementById('emptyState');
-  const total = filtered.length;
-  document.getElementById('totalCount').textContent = total;
+  document.getElementById('totalCount').textContent = totalPropiedades;
 
-  if (total === 0) {
+  if (totalPropiedades === 0) {
     grid.innerHTML = '';
     empty.classList.remove('oculto');
     document.getElementById('pagination').innerHTML = '';
@@ -578,21 +600,23 @@ function render() {
   }
   empty.classList.add('oculto');
 
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page  = filtered.slice(start, start + PAGE_SIZE);
-
   grid.innerHTML = '';
-  page.forEach(p => {
+  propiedades.forEach(p => {
     const isFav = favIds.has(String(p.id));
     const card  = document.createElement('div');
     card.className = 'propiedad-card reveal visible';
+    const safeTitle = escapeHtml(p.titulo || 'Propiedad');
+    const safeType = escapeHtml(capitalize(p.tipo || 'Inmueble'));
+    const safeCity = escapeHtml(p.ciudad || 'Ibagué');
+    const safeUbicacion = escapeHtml(p.ubicacion || '');
+    const safeImg = safeMediaUrl(p.img);
 
     card.innerHTML = `
       <div class="card-img-wrap">
-        <img src="${p.img}" alt="${p.titulo}" loading="lazy"
+        <img src="${safeImg}" alt="${safeTitle}" loading="lazy"
              onerror="this.src='videos/dani.png'">
         <span class="card-badge ${getBadgeClass(p.estado)}">
-          ${capitalize(p.estado)}
+          ${escapeHtml(capitalize(p.estado))}
         </span>
         <span class="card-modalidad-badge ${p.modalidad === 'arriendo' ? 'arriendo' : 'venta'}">
           ${p.modalidad === 'arriendo' ? '🔑 Arriendo' : '🏷 Venta'}
@@ -603,13 +627,13 @@ function render() {
       </div>
       <div class="card-body">
         <div class="card-type">
-          ${capitalize(p.tipo || 'Inmueble')}${p.ciudad ? ' · ' + p.ciudad : ''}
+          ${safeType}${p.ciudad ? ' · ' + safeCity : ''}
         </div>
-        <h3 class="card-title">${p.titulo}</h3>
-        <div class="card-location">📍 ${p.ciudad || 'Ibagué'}, Tolima</div>
+        <h3 class="card-title">${safeTitle}</h3>
+        <div class="card-location">📍 ${safeCity}, Tolima</div>
         <div class="card-price">${formatPrecio(p.precio)}</div>
         <div class="card-features">
-          <span>Área: ${formatArea(p.area)}${p.ubicacion ? ' · ' + p.ubicacion : ''}</span>
+          <span>Área: ${escapeHtml(formatArea(p.area))}${p.ubicacion ? ' · ' + safeUbicacion : ''}</span>
         </div>
         <div class="card-actions">
           <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
@@ -637,16 +661,15 @@ function render() {
   });
 
   // Paginación
-  const totalPages = Math.ceil(total / PAGE_SIZE);
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML = ''; return; }
   pg.innerHTML = Array.from({ length: totalPages }, (_, i) => i + 1).map(n =>
     `<button class="page-btn ${n === currentPage ? 'active' : ''}" data-page="${n}">${n}</button>`
   ).join('');
   pg.querySelectorAll('.page-btn').forEach(btn =>
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       currentPage = parseInt(btn.dataset.page);
-      render();
+      await cargarPropiedades();
       window.scrollTo({ top: 300, behavior: 'smooth' });
     })
   );
@@ -666,10 +689,10 @@ async function eliminarPropiedad(id, btn) {
       credentials: 'include',
     });
     if (res.status === 204) {
-      propiedades = propiedades.filter(p => p.id !== id);
-      filtered    = filtered.filter(p => p.id !== id);
-      document.getElementById('totalCount').textContent = filtered.length;
-      btn.closest('.propiedad-card').remove();
+      if (propiedades.length === 1 && currentPage > 1) {
+        currentPage -= 1;
+      }
+      await cargarPropiedades();
       showToast('Propiedad eliminada correctamente.', 'success');
     } else {
       const err = await res.json().catch(() => ({}));
@@ -917,7 +940,7 @@ document.querySelectorAll('.modalidad-tab').forEach(tab => {
 // ═══════════════════════════════════════════════════════
 ['searchInput','tipoFilter','ciudadFilter','ordenFilter','precioMin','precioMax'].forEach(id => {
   const el = document.getElementById(id);
-  el?.addEventListener('input',  applyFilters);
+  el?.addEventListener('input',  applyFiltersDebounced);
   el?.addEventListener('change', applyFilters);
 });
 

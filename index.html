@@ -308,10 +308,11 @@
 <!-- ═══ TOAST ═══ -->
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="app-config.js"></script>
 <script type="module">
-const API_AUTH = 'http://127.0.0.1:8000/api/auth';
-const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
-const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
+const API_AUTH = window.APP_CONFIG.authApi;
+const API_PROP = window.APP_CONFIG.propiedadesApi;
+const API_FAV  = window.APP_CONFIG.favoritosApi;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function showToast(msg, type = '') {
@@ -335,6 +336,34 @@ async function getCsrfToken() {
 function formatPrice(price) {
   if (!price) return 'Consultar precio';
   return '$ ' + Number(price).toLocaleString('es-CO');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeMediaUrl(value) {
+  if (!value) return 'videos/dani.png';
+  try {
+    const url = new URL(value, window.location.origin);
+    if (['http:', 'https:'].includes(url.protocol)) return url.href;
+  } catch {
+    return 'videos/dani.png';
+  }
+  return 'videos/dani.png';
+}
+
+function getBadgeClass(estado) {
+  return { disponible: 'disponible', vendido: 'vendido', reservado: 'reservado' }[estado] || 'disponible';
+}
+
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
 }
 
 // ── Auth state ─────────────────────────────────────────────────────────────
@@ -422,24 +451,28 @@ async function toggleFav(propId, btn) {
 
 // ── Build card ─────────────────────────────────────────────────────────────
 function buildCard(p, delay = 0) {
-  const img   = p.imagen_display || 'videos/dani.png';
+  const img   = safeMediaUrl(p.imagen_display || 'videos/dani.png');
   const isFav = favIds.has(String(p.id));
+  const safeTitle = escapeHtml(p.titulo || 'Propiedad');
+  const safeTipo = escapeHtml(p.tipo ? capitalize(p.tipo) : 'Inmueble');
+  const safeCiudad = escapeHtml(p.ciudad || 'Ibagué, Tolima');
+  const safeEstado = escapeHtml(capitalize(p.estado || 'disponible'));
 
   const features = [
     p.habitaciones ? `${p.habitaciones} 🛏` : null,
     p.banos        ? `${p.banos} 🛁`        : null,
     p.area         ? `${p.area} m²`         : null,
-  ].filter(Boolean);
+  ].filter(Boolean).map(escapeHtml);
 
   const card = document.createElement('div');
   card.className = 'propiedad-card reveal';
   card.style.transitionDelay = `${delay}s`;
   card.innerHTML = `
     <div class="card-img-wrap">
-      <img src="${img}" alt="${p.titulo}" loading="lazy"
+      <img src="${img}" alt="${safeTitle}" loading="lazy"
            onerror="this.src='videos/dani.png'">
-      <span class="card-badge ${p.estado}">
-        ${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+      <span class="card-badge ${getBadgeClass(p.estado)}">
+        ${safeEstado}
       </span>
       <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
         ${isFav ? '♥' : '♡'}
@@ -447,10 +480,10 @@ function buildCard(p, delay = 0) {
     </div>
     <div class="card-body">
       <div class="card-type">
-        ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'}
+        ${safeTipo}
       </div>
-      <h3 class="card-title">${p.titulo}</h3>
-      <div class="card-location">📍 ${p.ciudad || 'Ibagué, Tolima'}</div>
+      <h3 class="card-title">${safeTitle}</h3>
+      <div class="card-location">📍 ${safeCiudad}</div>
       <div class="card-price">${formatPrice(p.precio)}</div>
       ${features.length
         ? `<div class="card-features">${features.map(f => `<span>${f}</span>`).join('')}</div>`

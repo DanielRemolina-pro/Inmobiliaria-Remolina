@@ -334,10 +334,11 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="app-config.js"></script>
 <script type="module">
 // ── Constantes API ──────────────────────────────────────────────────────────
-const API_AUTH = 'http://127.0.0.1:8000/api/auth';
-const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
+const API_AUTH = window.APP_CONFIG.authApi;
+const API_FAV  = window.APP_CONFIG.favoritosApi;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function showToast(msg, type = '') {

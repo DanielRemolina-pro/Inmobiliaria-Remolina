@@ -799,10 +799,12 @@
   </div>
 </div>
 
+<script src="app-config.js"></script>
 <script>
   // ── Auth state + nav (Django session API) ──────────────────────────────
-  const AUTH_API  = 'http://127.0.0.1:8000/api/auth';
-  const PROPS_API = 'http://127.0.0.1:8000/api/propiedades';
+  const AUTH_API  = window.APP_CONFIG.authApi;
+  const PROPS_API = window.APP_CONFIG.propiedadesApi;
+  const VISITAS_API = window.APP_CONFIG.visitasApi;
   let currentUser = null;
 
   async function getCsrfToken() {
@@ -810,6 +812,26 @@
     if (m) return m[1];
     const r = await fetch(`${AUTH_API}/csrf/`, { credentials: 'include' });
     return (await r.json()).csrfToken;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeMediaUrl(value, fallback = 'videos/dani.png') {
+    if (!value) return fallback;
+    try {
+      const url = new URL(value, window.location.origin);
+      if (['http:', 'https:'].includes(url.protocol)) return url.href;
+    } catch {
+      return fallback;
+    }
+    return fallback;
   }
 
   async function initAuth() {
@@ -895,11 +917,11 @@
     if (!id) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${id}/`);
+      const res = await fetch(`${PROPS_API}/${id}/`);
       const p   = await res.json();
 
       // ── Títulos y meta ──
-      document.title = p.titulo + ' — Remolina';
+      document.title = `${p.titulo || 'Propiedad'} — Remolina`;
       document.getElementById('breadTitle').textContent  = p.titulo;
       document.getElementById('detTitulo').textContent   = p.titulo;
       document.getElementById('metaId').textContent      = '#' + id;
@@ -942,8 +964,8 @@
       document.getElementById('detStats').innerHTML = statsData.map(s => `
         <div class="det-stat">
           <div class="det-stat-icon">${s.icon}</div>
-          <div class="det-stat-label">${s.label}</div>
-          <div class="det-stat-value">${s.value}</div>
+          <div class="det-stat-label">${escapeHtml(s.label)}</div>
+          <div class="det-stat-value">${escapeHtml(s.value)}</div>
         </div>
       `).join('');
 
@@ -951,7 +973,7 @@
       const frases = (p.descripcion || '').split('.')
         .map(d => d.trim()).filter(Boolean);
       document.getElementById('detDesc').innerHTML = frases.map(f => `
-        <div class="det-desc-item">${f}.</div>
+        <div class="det-desc-item">${escapeHtml(f)}.</div>
       `).join('');
 
       // ── Extras adicionales (si existen) ──
@@ -966,20 +988,22 @@
         grid.style.display = 'grid';
         grid.innerHTML = extras.map(e => `
           <div class="det-extra-item">
-            <div class="det-extra-label">${e.label}</div>
-            <div class="det-extra-val">${e.val}</div>
+            <div class="det-extra-label">${escapeHtml(e.label)}</div>
+            <div class="det-extra-val">${escapeHtml(e.val)}</div>
           </div>
         `).join('');
       }
 
       // ── IMÁGENES principales ──
       allImgs = [];
-      if (p.imagen_display) allImgs.push(p.imagen_display);
-      else if (p.imagen_url) allImgs.push(p.imagen_url);
+      if (p.imagen_display) allImgs.push(safeMediaUrl(p.imagen_display));
+      else if (p.imagen_url) allImgs.push(safeMediaUrl(p.imagen_url));
       // Si la API devuelve un array imagenes[]
       if (Array.isArray(p.imagenes)) {
         p.imagenes.forEach(img => {
-          const src = img.imagen ? "http://127.0.0.1:8000" + img.imagen : img.url;
+          const src = img.imagen
+            ? safeMediaUrl(`${window.APP_CONFIG.apiOrigin}${img.imagen}`)
+            : safeMediaUrl(img.url);
           if (src && !allImgs.includes(src)) allImgs.push(src);
         });
       }
@@ -999,7 +1023,7 @@
       const thumbsHTML = allImgs.map((src, i) => `
         <div class="thumb-item ${i === 0 ? 'active' : ''}"
              onclick="seleccionarThumb(${i})">
-          <img src="${src}" alt="Vista ${i + 1}">
+          <img src="${safeMediaUrl(src)}" alt="Vista ${i + 1}">
         </div>
       `).join('');
 
@@ -1094,10 +1118,13 @@
               allowfullscreen style="border:none; display:block;"></iframe>`;
           }
         } else {
+          const safeVideoUrl = safeMediaUrl(p.video_url, '');
+          if (safeVideoUrl) {
           videoContainer.innerHTML = `<video controls style="width:100%; height:100%; display:block;">
-            <source src="${p.video_url}">
+            <source src="${safeVideoUrl}">
             Tu navegador no soporta video HTML5.
           </video>`;
+          }
         }
       }
 
@@ -1192,7 +1219,7 @@
 
     try {
       const res  = await fetch(
-        `http://127.0.0.1:8000/api/visitas/horas_ocupadas/?propiedad=${propiedadId}&fecha=${fecha}`,
+        `${VISITAS_API}/horas_ocupadas/?propiedad=${propiedadId}&fecha=${fecha}`,
         { credentials: 'include' }
       );
       const data = await res.json();
@@ -1251,10 +1278,10 @@
 
     try {
       // Obtener CSRF
-      const csrfRes = await fetch('http://127.0.0.1:8000/api/auth/csrf/', { credentials: 'include' });
+      const csrfRes = await fetch(`${AUTH_API}/csrf/`, { credentials: 'include' });
       const { csrfToken } = await csrfRes.json();
 
-      const res = await fetch('http://127.0.0.1:8000/api/visitas/', {
+      const res = await fetch(`${VISITAS_API}/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -1334,7 +1361,7 @@
     msg.textContent = '';
 
     try {
-      const csrfRes   = await fetch('http://127.0.0.1:8000/api/auth/csrf/', { credentials: 'include' });
+      const csrfRes   = await fetch(`${AUTH_API}/csrf/`, { credentials: 'include' });
       const { csrfToken } = await csrfRes.json();
 
       if (tipo === 'video') {
@@ -1342,7 +1369,7 @@
         const videoUrl = document.getElementById('mediaVideoUrl').value.trim();
         if (!videoUrl) { msg.style.color='#f87171'; msg.textContent='Pega la URL del video.'; return; }
 
-        const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${propId}/`, {
+        const res = await fetch(`${PROPS_API}/${propId}/`, {
           method: 'PATCH',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
@@ -1367,7 +1394,7 @@
         if (file)   fd.append('imagen',     file);
         if (urlVal) fd.append('imagen_url', urlVal);
 
-        const res = await fetch(`http://127.0.0.1:8000/api/propiedades/${propId}/`, {
+        const res = await fetch(`${PROPS_API}/${propId}/`, {
           method: 'PATCH',
           credentials: 'include',
           headers: { 'X-CSRFToken': csrfToken },
