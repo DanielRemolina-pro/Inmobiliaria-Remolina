@@ -31,6 +31,7 @@ class PropiedadFilter(django_filters.FilterSet):
     # Filtros exactos con choices
     tipo   = django_filters.ChoiceFilter(choices=Propiedad.TIPO_CHOICES)
     estado = django_filters.ChoiceFilter(choices=Propiedad.ESTADO_CHOICES)
+    modalidad = django_filters.ChoiceFilter(choices=Propiedad.MODALIDAD_CHOICES)
 
     # Ciudad: insensible a mayúsculas
     ciudad = django_filters.CharFilter(lookup_expr='icontains', label='Ciudad')
@@ -48,7 +49,7 @@ class PropiedadFilter(django_filters.FilterSet):
     class Meta:
         model  = Propiedad
         fields = [
-            'tipo', 'estado', 'ciudad',
+            'tipo', 'estado', 'modalidad', 'ciudad',
             'precio_min', 'precio_max',
             'area_min', 'area_max',
             'habitaciones', 'banos', 'estrato', 'parqueadero',

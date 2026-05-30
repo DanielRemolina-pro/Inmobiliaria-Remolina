@@ -3,9 +3,10 @@ propiedades/models.py
 =====================
 Modelos de dominio para Remolina Inmobiliaria.
 
-  PerfilUsuario  → extiende User con campos de contacto (OneToOne)
-  Propiedad      → inmueble publicado en la plataforma
-  Favorito       → relación usuario ↔ propiedad (lista de deseos)
+    PerfilUsuario  → extiende User con campos de contacto (OneToOne)
+    Propiedad      → inmueble publicado en la plataforma
+    Favorito       → relación usuario ↔ propiedad (lista de deseos)
+    Visita         → solicitud de visita a una propiedad en fecha y hora
 
 Los signals post_save crean/guardan el PerfilUsuario automáticamente
 al crear un User, evitando lógica duplicada en las vistas.
@@ -189,3 +190,49 @@ class Favorito(models.Model):
 
     def __str__(self):
         return f'{self.usuario.username} ❤ {self.propiedad.titulo}'
+
+
+# ── Visita ───────────────────────────────────────────────────────────────────
+
+class Visita(models.Model):
+    """
+    Solicitud de visita a una propiedad por parte de un usuario autenticado.
+
+    La combinación (propiedad, fecha, hora) debe ser única para evitar que dos
+    usuarios reserven el mismo horario en la misma propiedad.
+    """
+
+    HORA_CHOICES = [
+        ('09:00', '9:00 AM'),
+        ('10:00', '10:00 AM'),
+        ('11:00', '11:00 AM'),
+        ('14:00', '2:00 PM'),
+        ('15:00', '3:00 PM'),
+        ('16:00', '4:00 PM'),
+    ]
+
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='visitas',
+        verbose_name='Usuario',
+    )
+    propiedad = models.ForeignKey(
+        Propiedad,
+        on_delete=models.CASCADE,
+        related_name='visitas',
+        verbose_name='Propiedad',
+    )
+    fecha = models.DateField(verbose_name='Fecha de visita')
+    hora = models.CharField(max_length=5, choices=HORA_CHOICES, verbose_name='Hora')
+    nota = models.TextField(blank=True, verbose_name='Nota opcional')
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Solicitado el')
+
+    class Meta:
+        verbose_name = 'Visita'
+        verbose_name_plural = 'Visitas'
+        ordering = ['fecha', 'hora', '-creado']
+        unique_together = ('propiedad', 'fecha', 'hora')
+
+    def __str__(self):
+        return f'{self.propiedad.titulo} — {self.fecha} {self.hora}'

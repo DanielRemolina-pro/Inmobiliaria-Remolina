@@ -51,7 +51,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from .filters import PropiedadFilter
-from .models import Favorito, Propiedad
+from .models import Favorito, Propiedad, Visita
 from .permissions import IsAdminWithModelPerm, IsOwnerOrAdmin
 from .serializers import (
     CambioPasswordSerializer,
@@ -60,6 +60,7 @@ from .serializers import (
     PropiedadListSerializer,
     PropiedadSerializer,
     RegistroSerializer,
+    VisitaSerializer,
 )
 
 
@@ -74,6 +75,7 @@ from .serializers import (
         parameters=[
             OpenApiParameter('tipo',       description='Filtrar por tipo',    required=False),
             OpenApiParameter('estado',     description='Filtrar por estado',  required=False),
+            OpenApiParameter('modalidad',  description='Filtrar por modalidad', required=False),
             OpenApiParameter('ciudad',     description='Ciudad (contiene)',   required=False),
             OpenApiParameter('precio_min', description='Precio mínimo',       required=False),
             OpenApiParameter('precio_max', description='Precio máximo',       required=False),
@@ -292,6 +294,54 @@ class FavoritoViewSet(viewsets.ViewSet):
             {'action': 'added', 'favorito_id': nuevo.pk},
             status=status.HTTP_201_CREATED,
         )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VISITA VIEWSET
+# ══════════════════════════════════════════════════════════════════════════════
+
+class VisitaViewSet(viewsets.ViewSet):
+    """
+    Gestión de visitas agendadas.
+
+    Endpoints:
+        POST /api/visitas/                → crear visita del usuario autenticado
+        GET  /api/visitas/horas_ocupadas/ → horas reservadas por propiedad y fecha
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(summary='Agendar visita', request=VisitaSerializer)
+    def create(self, request):
+        serializer = VisitaSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        visita = serializer.save()
+        return Response(
+            VisitaSerializer(visita, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(
+        summary='Horas ocupadas por propiedad y fecha',
+        description='Devuelve las horas ya reservadas para la propiedad y fecha consultadas.',
+    )
+    @action(detail=False, methods=['get'], url_path='horas_ocupadas')
+    def horas_ocupadas(self, request):
+        propiedad_id = request.query_params.get('propiedad')
+        fecha = request.query_params.get('fecha')
+
+        if not propiedad_id or not fecha:
+            return Response(
+                {'detail': 'Los parámetros propiedad y fecha son requeridos.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        horas = list(
+            Visita.objects.filter(propiedad_id=propiedad_id, fecha=fecha)
+            .order_by('hora')
+            .values_list('hora', flat=True)
+        )
+        return Response({'horas_ocupadas': horas})
 
 
 # ══════════════════════════════════════════════════════════════════════════════

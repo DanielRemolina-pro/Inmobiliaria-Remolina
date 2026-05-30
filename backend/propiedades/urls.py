@@ -23,6 +23,10 @@ El DefaultRouter genera automáticamente:
     GET    /api/favoritos/ids/                  @action (solo IDs, para marcar ♥)
     POST   /api/favoritos/toggle/               @action (toggle add/remove)
 
+  VisitaViewSet  →  /api/visitas/
+    POST   /api/visitas/                      create (agendar visita)
+    GET    /api/visitas/horas_ocupadas/       @action (horarios tomados)
+
   AuthViewSet  →  /api/auth/
     GET    /api/auth/csrf/
     POST   /api/auth/registro/
@@ -36,12 +40,13 @@ El DefaultRouter genera automáticamente:
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import AuthViewSet, FavoritoViewSet, PropiedadViewSet
+from .views import AuthViewSet, FavoritoViewSet, PropiedadViewSet, VisitaViewSet
 
 router = DefaultRouter()
 router.register(r'propiedades', PropiedadViewSet, basename='propiedad')
 router.register(r'favoritos',   FavoritoViewSet,  basename='favorito')
 router.register(r'auth',        AuthViewSet,       basename='auth')
+router.register(r'visitas',     VisitaViewSet,     basename='visita')
 
 urlpatterns = [
     path('', include(router.urls)),

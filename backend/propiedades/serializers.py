@@ -10,13 +10,17 @@ Estructura:
   - PropiedadListSerializer  → lista compacta (menos campos, más rápida)
   - PropiedadSerializer      → detalle completo (lectura + escritura)
   - FavoritoSerializer       → favoritos del usuario autenticado
+    - VisitaSerializer         → agendamiento y validación de visitas
 """
+
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Favorito, PerfilUsuario, Propiedad
+from .models import Favorito, PerfilUsuario, Propiedad, Visita
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -237,6 +241,52 @@ class FavoritoSerializer(serializers.ModelSerializer):
         propiedad = attrs['propiedad']
         if Favorito.objects.filter(usuario=usuario, propiedad=propiedad).exists():
             raise serializers.ValidationError('Esta propiedad ya está en tus favoritos.')
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['usuario'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VISITA SERIALIZER
+# ══════════════════════════════════════════════════════════════════════════════
+
+class VisitaSerializer(serializers.ModelSerializer):
+    """Serializer para crear visitas y validar disponibilidad."""
+
+    propiedad = serializers.PrimaryKeyRelatedField(queryset=Propiedad.objects.all())
+
+    class Meta:
+        model = Visita
+        fields = ('id', 'propiedad', 'fecha', 'hora', 'nota', 'creado')
+        read_only_fields = ('id', 'creado')
+        validators = []
+
+    def validate_fecha(self, value):
+        hoy = timezone.localdate()
+        manana = hoy + timedelta(days=1)
+        max_fecha = hoy + timedelta(days=7)
+
+        if value < manana:
+            raise serializers.ValidationError('La visita debe agendarse desde mañana en adelante.')
+        if value > max_fecha:
+            raise serializers.ValidationError('Solo puedes agendar visitas dentro de los próximos 7 días.')
+        return value
+
+    def validate_hora(self, value):
+        horas_validas = {hora for hora, _ in Visita.HORA_CHOICES}
+        if value not in horas_validas:
+            raise serializers.ValidationError('La hora seleccionada no está disponible para agendamiento.')
+        return value
+
+    def validate(self, attrs):
+        propiedad = attrs['propiedad']
+        fecha = attrs['fecha']
+        hora = attrs['hora']
+
+        if Visita.objects.filter(propiedad=propiedad, fecha=fecha, hora=hora).exists():
+            raise serializers.ValidationError({'hora': ['Ese horario ya fue reservado para esta propiedad.']})
         return attrs
 
     def create(self, validated_data):
