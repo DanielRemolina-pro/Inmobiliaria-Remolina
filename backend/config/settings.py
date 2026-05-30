@@ -36,6 +36,7 @@ CAMBIOS DE SEGURIDAD respecto a la versión anterior
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -113,11 +114,47 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ── Base de datos ─────────────────────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+def _build_database_config():
+    """
+    Construye la configuración de BD a partir de DATABASE_URL.
+
+    - Sin DATABASE_URL: usa SQLite para desarrollo local.
+    - Con postgres:// o postgresql://: usa PostgreSQL.
+    - Mantiene el proyecto libre de dependencias tipo django-environ.
+    """
+    database_url = os.environ.get('DATABASE_URL', '').strip()
+    if not database_url:
+        return {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+
+    parsed = urlparse(database_url)
+    if parsed.scheme not in ('postgres', 'postgresql'):
+        raise RuntimeError(
+            'DATABASE_URL debe usar postgres:// o postgresql://. '
+            f'Valor recibido: {parsed.scheme or "<vacío>"}'
+        )
+
+    config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed.path.lstrip('/'),
+        'USER': parsed.username or '',
+        'PASSWORD': parsed.password or '',
+        'HOST': parsed.hostname or 'localhost',
+        'PORT': parsed.port or 5432,
     }
+
+    query_params = dict(parse_qsl(parsed.query))
+    sslmode = query_params.get('sslmode')
+    if sslmode:
+        config['OPTIONS'] = {'sslmode': sslmode}
+
+    return config
+
+
+DATABASES = {
+    'default': _build_database_config(),
 }
 
 # ── Validación de contraseñas ─────────────────────────────────────────────────

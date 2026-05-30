@@ -348,11 +348,14 @@ Para despliegue en producción, configura las siguientes variables en un archivo
 DEBUG=False
 SECRET_KEY=tu-clave-secreta-muy-larga-y-aleatoria
 ALLOWED_HOSTS=tudominio.com,www.tudominio.com
-DATABASE_URL=postgres://user:pass@host:5432/inmobiliaria
-CORS_ALLOWED_ORIGINS=https://tudominio.com
+DATABASE_URL=postgresql://user:pass@host:5432/inmobiliaria?sslmode=require
+CORS_ORIGINS=https://tudominio.com,https://www.tudominio.com
+CSRF_TRUSTED_ORIGINS=https://tudominio.com,https://www.tudominio.com
 ```
 
-> Para desarrollo local no es necesario, ya que `settings.py` usa valores por defecto seguros para entorno local.
+> Para desarrollo local no es necesario, ya que `settings.py` usa SQLite por defecto cuando `DATABASE_URL` no existe.
+>
+> El driver de PostgreSQL ya quedó incluido en `backend/requirements.txt`, así que `pip install -r requirements.txt` instala también el soporte para Postgres.
 
 ---
 
