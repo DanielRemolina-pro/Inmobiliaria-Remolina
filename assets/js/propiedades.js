@@ -48,14 +48,14 @@ function escapeHtml(value) {
 }
 
 function safeMediaUrl(value) {
-  if (!value) return 'videos/dani.png';
+  if (!value) return 'assets/media/videos/dani.png';
   try {
     const url = new URL(value, window.location.origin);
     if (['http:', 'https:'].includes(url.protocol)) return url.href;
   } catch {
-    return 'videos/dani.png';
+    return 'assets/media/videos/dani.png';
   }
-  return 'videos/dani.png';
+  return 'assets/media/videos/dani.png';
 }
 
 function getBadgeClass(estado) {
@@ -161,7 +161,7 @@ async function cargarPropiedades() {
       estado:      p.estado || 'disponible',
       modalidad:   p.modalidad || 'venta',
       fecha:       p.fecha,
-      img:         p.imagen_display || p.imagen_url || 'videos/dani.png',
+      img:         p.imagen_display || p.imagen_url || 'assets/media/videos/dani.png',
     }));
 
     render();
@@ -242,7 +242,7 @@ function render() {
     card.innerHTML = `
       <div class="card-img-wrap">
         <img src="${safeImg}" alt="${safeTitle}" loading="lazy"
-             onerror="this.src='videos/dani.png'">
+             onerror="this.src='assets/media/videos/dani.png'">
         <span class="card-badge ${getBadgeClass(p.estado)}">
           ${escapeHtml(capitalize(p.estado))}
         </span>

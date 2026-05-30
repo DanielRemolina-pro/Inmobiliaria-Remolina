@@ -33,14 +33,14 @@ function escapeHtml(value) {
 }
 
 function safeMediaUrl(value) {
-  if (!value) return 'videos/dani.png';
+  if (!value) return 'assets/media/videos/dani.png';
   try {
     const url = new URL(value, window.location.origin);
     if (['http:', 'https:'].includes(url.protocol)) return url.href;
   } catch {
-    return 'videos/dani.png';
+    return 'assets/media/videos/dani.png';
   }
-  return 'videos/dani.png';
+  return 'assets/media/videos/dani.png';
 }
 
 function getBadgeClass(estado) {
@@ -125,7 +125,7 @@ async function toggleFav(propId, btn) {
 }
 
 function buildCard(propiedad, delay = 0) {
-  const img = safeMediaUrl(propiedad.imagen_display || 'videos/dani.png');
+  const img = safeMediaUrl(propiedad.imagen_display || 'assets/media/videos/dani.png');
   const isFav = favIds.has(String(propiedad.id));
   const safeTitle = escapeHtml(propiedad.titulo || 'Propiedad');
   const safeTipo = escapeHtml(propiedad.tipo ? capitalize(propiedad.tipo) : 'Inmueble');
@@ -144,7 +144,7 @@ function buildCard(propiedad, delay = 0) {
   card.innerHTML = `
     <div class="card-img-wrap">
       <img src="${img}" alt="${safeTitle}" loading="lazy"
-           onerror="this.src='videos/dani.png'">
+           onerror="this.src='assets/media/videos/dani.png'">
       <span class="card-badge ${getBadgeClass(propiedad.estado)}">
         ${safeEstado}
       </span>

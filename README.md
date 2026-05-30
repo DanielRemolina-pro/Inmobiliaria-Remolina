@@ -163,9 +163,21 @@ Inmobiliaria-Remolina/
 ├── favoritos.html                  # Lista de favoritos
 ├── login.html                      # Login / Registro
 ├── nosotros.html                   # Página "Nosotros"
-├── auth.js                         # Lógica de autenticación frontend
-├── script.js                       # Scripts generales
-├── styles.css                      # Estilos globales
+├── assets/
+│   ├── css/
+│   │   └── styles.css              # Estilos globales
+│   ├── js/
+│   │   ├── app-config.js           # Configuración compartida del frontend
+│   │   ├── auth.js                 # Lógica de autenticación frontend
+│   │   ├── detalle.js              # Lógica de detalle de propiedad
+│   │   ├── favoritos.js            # Lógica de favoritos
+│   │   ├── index.js                # Lógica de la home
+│   │   ├── index-terms.js          # Términos y condiciones de la home
+│   │   ├── login-ui.js             # UI auxiliar de login
+│   │   ├── propiedades.js          # Lógica del catálogo
+│   │   └── script.js               # Scripts heredados / generales
+│   └── media/
+│       └── videos/                 # Imágenes y videos estáticos del frontend
 └── README.md                       # Este archivo
 ```
 

@@ -20,7 +20,7 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function safeMediaUrl(value, fallback = 'videos/dani.png') {
+function safeMediaUrl(value, fallback = 'assets/media/videos/dani.png') {
   if (!value) return fallback;
   try {
     const url = new URL(value, window.location.origin);
@@ -190,7 +190,7 @@ async function cargarDetalle() {
         if (src && !allImgs.includes(src)) allImgs.push(src);
       });
     }
-    if (allImgs.length === 0) allImgs.push('videos/dani.png');
+    if (allImgs.length === 0) allImgs.push('assets/media/videos/dani.png');
 
     document.getElementById('mainHeroImg').src = allImgs[0] || '';
     document.getElementById('side1Img').src    = allImgs[1] || allImgs[0] || '';

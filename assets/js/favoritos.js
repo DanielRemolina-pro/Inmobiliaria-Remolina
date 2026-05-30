@@ -81,7 +81,7 @@ async function quitarFavorito(propId, cardEl) {
 
 function buildFavCard(fav, delay = 0) {
   const propiedad = fav.propiedad || fav;
-  const img = propiedad.imagen_display || propiedad.imagen_url || 'videos/dani.png';
+  const img = propiedad.imagen_display || propiedad.imagen_url || 'assets/media/videos/dani.png';
 
   const features = [
     propiedad.habitaciones ? `${propiedad.habitaciones} 🛏` : null,
@@ -96,7 +96,7 @@ function buildFavCard(fav, delay = 0) {
   card.innerHTML = `
     <div class="card-img-wrap">
       <img src="${img}" alt="${propiedad.titulo}" loading="lazy"
-           onerror="this.src='videos/dani.png'">
+           onerror="this.src='assets/media/videos/dani.png'">
       <span class="card-badge ${propiedad.estado || 'disponible'}">
         ${propiedad.estado ? propiedad.estado.charAt(0).toUpperCase() + propiedad.estado.slice(1) : 'Disponible'}
       </span>
