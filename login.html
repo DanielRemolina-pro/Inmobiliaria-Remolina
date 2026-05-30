@@ -273,49 +273,6 @@
 
 <script src="app-config.js"></script>
 <script type="module" src="auth.js"></script>
-<script>
-// Password strength indicator
-document.getElementById('register-password')?.addEventListener('input', function() {
-  const v = this.value;
-  const fill = document.getElementById('strengthFill');
-  let strength = 0;
-  if (v.length >= 6) strength++;
-  if (v.length >= 10) strength++;
-  if (/[A-Z]/.test(v)) strength++;
-  if (/[0-9]/.test(v)) strength++;
-  if (/[^A-Za-z0-9]/.test(v)) strength++;
-  const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
-  const widths = ['0%', '20%', '40%', '60%', '80%', '100%'];
-  fill.style.width = widths[strength];
-  fill.style.background = colors[strength] || '';
-});
-
-// Tabs
-document.querySelectorAll('.auth-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.auth-form').forEach(f => { f.classList.remove('active'); f.style.display = 'none'; });
-    tab.classList.add('active');
-    const target = document.getElementById(tab.dataset.target);
-    target.classList.add('active');
-    target.style.display = 'flex';
-    document.getElementById('login-message').textContent = '';
-    document.getElementById('register-message').textContent = '';
-  });
-});
-
-// Toggle password — listener único, busca el input dentro del mismo .password-wrapper
-document.querySelectorAll('.toggle-password').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const wrapper = btn.closest('.password-wrapper');
-    const input   = wrapper.querySelector('input');
-    const mostrar = input.type === 'password';
-    input.type        = mostrar ? 'text' : 'password';
-    btn.textContent   = mostrar ? '👁' : '👁';
-    btn.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
-    input.focus(); // mantiene el foco en el campo
-  });
-});
-</script>
+<script src="login-ui.js"></script>
 </body>
 </html>
