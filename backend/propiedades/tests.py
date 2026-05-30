@@ -8,6 +8,79 @@ from rest_framework.test import APITestCase
 from .models import Propiedad, Visita
 
 
+class PropiedadAdminPermissionTests(APITestCase):
+	def setUp(self):
+		self.usuario = User.objects.create_user(
+			username='usuario_normal',
+			email='usuario_normal@example.com',
+			password='Password123!',
+		)
+		self.admin = User.objects.create_superuser(
+			username='admin_remolina',
+			email='admin@example.com',
+			password='Admin123!Remolina',
+		)
+		self.propiedad = Propiedad.objects.create(
+			titulo='Apartamento centro',
+			tipo='apartamento',
+			modalidad='venta',
+			ciudad='Ibague',
+			precio=280000000,
+			imagen_url='https://example.com/apto.jpg',
+		)
+
+	def test_usuario_normal_no_puede_crear_propiedad(self):
+		self.client.force_login(self.usuario)
+
+		response = self.client.post(
+			'/api/propiedades/',
+			{
+				'titulo': 'Casa nueva',
+				'tipo': 'casa',
+				'modalidad': 'venta',
+				'ciudad': 'Ibague',
+				'precio': 450000000,
+				'imagen_url': 'https://example.com/casa.jpg',
+			},
+			format='multipart',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+		self.assertEqual(Propiedad.objects.count(), 1)
+
+	def test_usuario_normal_no_puede_editar_propiedad(self):
+		self.client.force_login(self.usuario)
+
+		response = self.client.patch(
+			f'/api/propiedades/{self.propiedad.id}/',
+			{'titulo': 'Titulo alterado'},
+			format='json',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+		self.propiedad.refresh_from_db()
+		self.assertEqual(self.propiedad.titulo, 'Apartamento centro')
+
+	def test_administrador_puede_crear_propiedad(self):
+		self.client.force_login(self.admin)
+
+		response = self.client.post(
+			'/api/propiedades/',
+			{
+				'titulo': 'Finca cafetera',
+				'tipo': 'finca',
+				'modalidad': 'venta',
+				'ciudad': 'Ibague',
+				'precio': 980000000,
+				'imagen_url': 'https://example.com/finca.jpg',
+			},
+			format='multipart',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+		self.assertTrue(Propiedad.objects.filter(titulo='Finca cafetera').exists())
+
+
 class VisitaApiTests(APITestCase):
 	def setUp(self):
 		self.user = User.objects.create_user(

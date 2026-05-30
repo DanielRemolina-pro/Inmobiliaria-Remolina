@@ -302,6 +302,10 @@ function render() {
 }
 
 async function eliminarPropiedad(id, btn) {
+  if (!currentUser?.is_staff) {
+    showToast('Solo el administrador puede modificar propiedades.', 'error');
+    return;
+  }
   if (!confirm('¿Seguro que deseas eliminar esta propiedad?\nEsta acción no se puede deshacer.')) return;
   btn.disabled = true;
   try {
@@ -359,6 +363,10 @@ overlay.addEventListener('click', e => { if (e.target === overlay) cerrarModal()
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
 
 window.abrirModalCrear = function () {
+  if (!currentUser?.is_staff) {
+    showToast('Solo el administrador puede crear propiedades.', 'error');
+    return;
+  }
   cerrarModal();
   editId = null;
   document.getElementById('modalTitle').textContent = 'Nueva propiedad';
@@ -369,6 +377,10 @@ window.abrirModalCrear = function () {
 };
 
 async function abrirModalEditar(id) {
+  if (!currentUser?.is_staff) {
+    showToast('Solo el administrador puede editar propiedades.', 'error');
+    return;
+  }
   cerrarModal();
   editId = id;
   document.getElementById('modalTitle').textContent = 'Editar propiedad';
@@ -429,6 +441,11 @@ document.getElementById('f_imagen').addEventListener('change', e => {
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
+
+  if (!currentUser?.is_staff) {
+    mostrarErrorModal('Solo el administrador puede crear o editar propiedades.');
+    return;
+  }
 
   const submitBtn   = document.getElementById('modalSubmitBtn');
   const submitLabel = document.getElementById('modalSubmitLabel');
