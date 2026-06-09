@@ -13,3 +13,6 @@ backend/.venv/
 
 # Archivos del sistema
 .DS_Store
+
+# Variables de entorno
+.env

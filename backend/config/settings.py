@@ -39,6 +39,23 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BASE_DIR.parent
+
+# ── Carga opcional de variables de entorno desde .env --------------
+# Si existe backend/.env o la raíz del proyecto .env, se cargan las variables
+# en tiempo de arranque para facilitar el desarrollo local.
+for env_path in (BASE_DIR / '.env', ROOT_DIR / '.env'):
+    if env_path.exists():
+        for line in env_path.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = [part.strip() for part in line.split('=', 1)]
+            if not key or key in os.environ:
+                continue
+            if (value.startswith(('"', "'")) and value.endswith(('"', "'"))):
+                value = value[1:-1]
+            os.environ.setdefault(key, value)
 
 # ── Entorno: desarrollo o producción ─────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'

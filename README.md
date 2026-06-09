@@ -377,7 +377,11 @@ CORS_ORIGINS=https://tudominio.com,https://www.tudominio.com
 CSRF_TRUSTED_ORIGINS=https://tudominio.com,https://www.tudominio.com
 ```
 
-> Para desarrollo local no es necesario, ya que `settings.py` usa SQLite por defecto cuando `DATABASE_URL` no existe.
+> Si vas a usar Supabase, copia la cadena de conexión PostgreSQL completa desde el panel de Supabase y pégala en `DATABASE_URL`.
+> El formato típico es:
+> `postgres://<usuario>:<password>@<host>.supabase.co:5432/<db>`.
+>
+> Para desarrollo local, no es necesario definir `DATABASE_URL`; `settings.py` usará SQLite si no existe.
 >
 > El driver de PostgreSQL ya quedó incluido en `backend/requirements.txt`, así que `pip install -r requirements.txt` instala también el soporte para Postgres.
 
