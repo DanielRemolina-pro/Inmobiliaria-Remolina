@@ -16,3 +16,7 @@ backend/.venv/
 
 # Variables de entorno
 .env
+*.env
+firebase-*.json
+.env.local
+.env.*.local

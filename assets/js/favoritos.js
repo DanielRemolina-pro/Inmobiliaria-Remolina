@@ -104,11 +104,11 @@ function buildFavCard(fav, delay = 0) {
     </div>
     <div class="card-body">
       <div class="card-type">
-        ${propiedad.tipo ? propiedad.tipo.charAt(0).toUpperCase() + propiedad.tipo.slice(1) : 'Inmueble'}
-        ${propiedad.ciudad ? '• ' + propiedad.ciudad : ''}
+        ${propiedad.tipo ? escapeHtml(propiedad.tipo).charAt(0).toUpperCase() + escapeHtml(propiedad.tipo).slice(1) : 'Inmueble'}
+        ${propiedad.ciudad ? '• ' + escapeHtml(propiedad.ciudad) : ''}
       </div>
-      <h3 class="card-title">${propiedad.titulo}</h3>
-      <div class="card-location">📍 ${propiedad.ciudad || 'Ibagué'}, Tolima</div>
+      <h3 class="card-title">${escapeHtml(propiedad.titulo)}</h3>
+      <div class="card-location">📍 ${escapeHtml(propiedad.ciudad || 'Ibagué')}, Tolima</div>
       <div class="card-price">${formatPrecio(propiedad.precio)}</div>
       ${features.length
         ? `<div class="card-features">${features.map(feature => `<span>${feature}</span>`).join('')}</div>`
