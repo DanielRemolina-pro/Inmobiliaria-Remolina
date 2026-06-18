@@ -40,13 +40,14 @@ El DefaultRouter genera automáticamente:
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import AuthViewSet, FavoritoViewSet, PropiedadViewSet, VisitaViewSet
+from .views import AuthViewSet, ContactoViewSet, FavoritoViewSet, PropiedadViewSet, VisitaViewSet
 
 router = DefaultRouter()
 router.register(r'propiedades', PropiedadViewSet, basename='propiedad')
 router.register(r'favoritos',   FavoritoViewSet,  basename='favorito')
 router.register(r'auth',        AuthViewSet,       basename='auth')
 router.register(r'visitas',     VisitaViewSet,     basename='visita')
+router.register(r'contacto',    ContactoViewSet,    basename='contacto')
 
 urlpatterns = [
     path('', include(router.urls)),

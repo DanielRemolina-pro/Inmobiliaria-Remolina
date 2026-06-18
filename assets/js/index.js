@@ -1,6 +1,7 @@
 const API_AUTH = window.APP_CONFIG.authApi;
 const API_PROP = window.APP_CONFIG.propiedadesApi;
 const API_FAV = window.APP_CONFIG.favoritosApi;
+const API_CONTACT = window.APP_CONFIG.apiBase;
 
 function showToast(msg, type = '') {
   const t = document.createElement('div');
@@ -16,6 +17,19 @@ async function getCsrfToken() {
   const data = await response.json();
   window.__csrfToken = data.csrfToken;
   return window.__csrfToken;
+}
+
+async function postJson(url, body) {
+  const csrf = await getCsrfToken();
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrf,
+    },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
 }
 
 function formatPrice(price) {
@@ -252,11 +266,34 @@ const revealObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal:not(#propsGrid .reveal)').forEach(element => revealObs.observe(element));
 
-document.getElementById('contactForm').addEventListener('submit', (event) => {
+document.getElementById('contactForm').addEventListener('submit', async (event) => {
   event.preventDefault();
-  document.getElementById('formSuccess').classList.add('show');
-  event.target.reset();
-  setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
+
+  const form = event.target;
+  const nombre = form.querySelector('input[type="text"]').value.trim();
+  const email = form.querySelector('input[type="email"]').value.trim();
+  const telefono = form.querySelector('input[type="tel"]').value.trim();
+  const mensaje = form.querySelector('textarea').value.trim();
+
+  try {
+    const url = `${API_CONTACT}/contacto/`;
+    console.log('Enviando contacto a:', url);
+    const res = await postJson(url, { nombre, email, telefono, mensaje });
+    if (!res.ok) {
+      const responseText = await res.text();
+      console.error('Error al enviar mensaje de contacto:', res.status, responseText);
+      showToast('No se pudo enviar el mensaje. Revisa la consola.', 'error');
+      return;
+    }
+
+    document.getElementById('formSuccess').classList.add('show');
+    form.reset();
+    showToast('Mensaje enviado correctamente.', 'success');
+    setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
+  } catch (error) {
+    console.error('Error de conexión al enviar contacto:', error);
+    showToast('Error de conexión. Intenta de nuevo.', 'error');
+  }
 });
 
 function animateCount(element, target) {

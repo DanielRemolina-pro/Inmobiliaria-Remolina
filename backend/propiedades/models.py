@@ -236,3 +236,21 @@ class Visita(models.Model):
 
     def __str__(self):
         return f'{self.propiedad.titulo} — {self.fecha} {self.hora}'
+
+
+class Contacto(models.Model):
+    """Mensaje de contacto enviado desde el formulario público."""
+
+    nombre   = models.CharField(max_length=150, verbose_name='Nombre completo')
+    email    = models.EmailField(verbose_name='Correo electrónico')
+    telefono = models.CharField(max_length=30, blank=True, verbose_name='Teléfono')
+    mensaje  = models.TextField(verbose_name='Mensaje')
+    creado   = models.DateTimeField(auto_now_add=True, verbose_name='Enviado el')
+
+    class Meta:
+        verbose_name = 'Contacto'
+        verbose_name_plural = 'Contactos'
+        ordering = ['-creado']
+
+    def __str__(self):
+        return f'{self.nombre} — {self.email} ({self.creado:%Y-%m-%d %H:%M})'

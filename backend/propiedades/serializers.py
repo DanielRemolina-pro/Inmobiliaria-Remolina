@@ -20,7 +20,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Favorito, PerfilUsuario, Propiedad, Visita
+from .models import Contacto, Favorito, PerfilUsuario, Propiedad, Visita
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -139,6 +139,13 @@ class PerfilSerializer(serializers.ModelSerializer):
 
         return instance
 
+class ContactoSerializer(serializers.ModelSerializer):
+    """Serializer para guardar mensajes de contacto desde el frontend."""
+
+    class Meta:
+        model = Contacto
+        fields = ('id', 'nombre', 'email', 'telefono', 'mensaje', 'creado')
+        read_only_fields = ('id', 'creado')
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  PROPIEDAD SERIALIZERS
