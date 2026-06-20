@@ -1,10 +1,35 @@
 const API = window.APP_CONFIG.authApi;
+const API_PROP = window.APP_CONFIG.propiedadesApi;
 
 async function getCsrfToken() {
   const match = document.cookie.match(/csrftoken=([^;]+)/);
   if (match) return match[1];
   const response = await fetch(`${API}/csrf/`, { credentials: 'include' });
   return (await response.json()).csrfToken;
+}
+
+async function loadPropiedadesCount() {
+  try {
+    const response = await fetch(`${API_PROP}/?limit=1`, { credentials: 'include' });
+    if (response.ok) {
+      const data = await response.json();
+      const total = data.count || 0;
+
+      // Actualizar el contador en las cifras
+      const propiedadesCount = document.getElementById('propiedadesCount');
+      if (propiedadesCount) {
+        propiedadesCount.textContent = `+${total}`;
+      }
+
+      // Actualizar el texto en el hero
+      const heroPropCount = document.getElementById('nosotrosHeroPropCount');
+      if (heroPropCount) {
+        heroPropCount.textContent = total;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading propiedades count:', error);
+  }
 }
 
 (async () => {
@@ -25,6 +50,8 @@ async function getCsrfToken() {
     navUser.classList.add('oculto');
     navLoginBtn.classList.remove('oculto');
   }
+
+  loadPropiedadesCount();
 })();
 
 document.getElementById('navLogout')?.addEventListener('click', async (event) => {

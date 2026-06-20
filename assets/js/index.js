@@ -306,10 +306,36 @@ function animateCount(element, target) {
   }, 20);
 }
 
+async function loadPropiedadesCount() {
+  try {
+    const res = await fetch(`${API_PROP}/?limit=1`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      const total = data.count || 120;
+
+      // Actualizar el texto en el hero
+      const heroPropCount = document.getElementById('heroPropCount');
+      if (heroPropCount) {
+        heroPropCount.textContent = total;
+      }
+
+      // Animar el contador de estadísticas
+      const statObs = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          animateCount(document.getElementById('statProps'), total);
+          statObs.disconnect();
+        }
+      });
+      statObs.observe(document.getElementById('statProps'));
+    }
+  } catch (error) {
+    console.error('Error loading propiedades count:', error);
+  }
+}
+
 const statObs = new IntersectionObserver(([entry]) => {
   if (entry.isIntersecting) {
-    animateCount(document.getElementById('statProps'), 120);
-    animateCount(document.getElementById('statClients'), 340);
+    loadPropiedadesCount();
     statObs.disconnect();
   }
 });
