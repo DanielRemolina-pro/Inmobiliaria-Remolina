@@ -24,7 +24,8 @@
 
 **Inmobiliaria Remolina** es un MVP funcional desarrollado como proyecto de curso bajo la metodología ágil **Scrum** en 5 Sprints. La plataforma permite:
 
-- 📋 Listar, crear, editar y eliminar propiedades inmobiliarias
+- 📋 Listar propiedades inmobiliarias de forma pública
+- 🛡️ Crear, editar y eliminar propiedades solo desde cuentas administradoras
 - 🔍 Filtrar por tipo, estado, modalidad, ciudad y rango de precio
 - ❤️ Guardar propiedades en lista de favoritos (usuarios registrados)
 - 🔐 Autenticación de usuarios con registro, login y gestión de perfil
@@ -163,9 +164,21 @@ Inmobiliaria-Remolina/
 ├── favoritos.html                  # Lista de favoritos
 ├── login.html                      # Login / Registro
 ├── nosotros.html                   # Página "Nosotros"
-├── auth.js                         # Lógica de autenticación frontend
-├── script.js                       # Scripts generales
-├── styles.css                      # Estilos globales
+├── assets/
+│   ├── css/
+│   │   └── styles.css              # Estilos globales
+│   ├── js/
+│   │   ├── app-config.js           # Configuración compartida del frontend
+│   │   ├── auth.js                 # Lógica de autenticación frontend
+│   │   ├── detalle.js              # Lógica de detalle de propiedad
+│   │   ├── favoritos.js            # Lógica de favoritos
+│   │   ├── index.js                # Lógica de la home
+│   │   ├── index-terms.js          # Términos y condiciones de la home
+│   │   ├── login-ui.js             # UI auxiliar de login
+│   │   ├── propiedades.js          # Lógica del catálogo
+│   │   └── script.js               # Scripts heredados / generales
+│   └── media/
+│       └── videos/                 # Imágenes y videos estáticos del frontend
 └── README.md                       # Este archivo
 ```
 
@@ -192,16 +205,16 @@ cd Inmobiliaria-Remolina
 
 ```bash
 # Crear el entorno virtual
-python -m venv venv
+python -m venv .venv
 
 # Activar en Linux / Mac
-source venv/bin/activate
+source .venv/bin/activate
 
 # Activar en Windows (PowerShell)
-venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1
 
 # Activar en Windows (CMD)
-venv\Scripts\activate.bat
+.venv\Scripts\activate.bat
 ```
 
 ### Paso 3 — Instalar dependencias
@@ -209,6 +222,7 @@ venv\Scripts\activate.bat
 ```bash
 cd backend
 pip install -r requirements.txt
+cd ..
 ```
 
 > Si hay errores con Pillow, instala primero las dependencias del sistema:  
@@ -218,13 +232,13 @@ pip install -r requirements.txt
 ### Paso 4 — Aplicar migraciones de base de datos
 
 ```bash
-python manage.py migrate
+.\.venv\Scripts\python.exe .\backend\manage.py migrate
 ```
 
 ### Paso 5 — Crear superusuario (administrador)
 
 ```bash
-python manage.py createsuperuser
+.\.venv\Scripts\python.exe .\backend\manage.py createsuperuser
 # Ingresar: username, email, contraseña
 ```
 
@@ -232,35 +246,45 @@ python manage.py createsuperuser
 
 ```bash
 # Si existe un fixture de ejemplo
-python manage.py loaddata propiedades_demo.json
+.\.venv\Scripts\python.exe .\backend\manage.py loaddata propiedades_demo.json
 ```
 
 ### Paso 7 — Ejecutar el servidor de desarrollo
 
 ```bash
-python manage.py runserver
+.\.venv\Scripts\python.exe .\backend\manage.py runserver 127.0.0.1:8000
 ```
 
 El servidor estará disponible en:
-- **API REST:** http://localhost:8000/api/
-- **Admin Django:** http://localhost:8000/admin/
-- **Documentación Swagger:** http://localhost:8000/api/schema/swagger-ui/
+- **API REST:** http://127.0.0.1:8000/api/
+- **Admin Django:** http://127.0.0.1:8000/admin/
+- **Documentación Swagger:** http://127.0.0.1:8000/api/schema/swagger-ui/
 
 ### Paso 8 — Abrir el Frontend
 
-Abre el archivo `index.html` directamente en tu navegador, **o** usa la extensión **Live Server** de VS Code para un mejor desarrollo:
+Puedes abrir [index.html](index.html) directamente en tu navegador, **o** usar la extensión **Live Server** de VS Code. La configuración actual del frontend soporta ambos escenarios en desarrollo local.
 
 1. Instala la extensión "Live Server" en VS Code
 2. Haz clic derecho sobre `index.html` → "Open with Live Server"
 3. El frontend se abrirá en `http://127.0.0.1:5500`
 
-> **Importante:** El frontend consume la API en `http://localhost:8000`. Ambos deben estar corriendo simultáneamente.
+> **Importante:**
+> - Si abres el frontend con `file://` o con Live Server, la app consumirá la API en `http://127.0.0.1:8000`.
+> - El backend debe estar corriendo al mismo tiempo para que login, favoritos, visitas y administración funcionen.
+
+### Paso 9 — Roles de prueba y permisos
+
+- Usuarios no autenticados: pueden navegar, listar propiedades y ver detalles públicos.
+- Usuarios autenticados normales: pueden visualizar, gestionar favoritos y agendar visitas, pero no crear, editar ni eliminar propiedades.
+- Administradores (`is_staff`): pueden crear, editar y eliminar propiedades desde la API y desde la interfaz del catálogo.
+
+Si necesitas cuentas de prueba, créalas con Django Admin o con `createsuperuser`. Evita guardar credenciales reales o de prueba en archivos versionados.
 
 ---
 
 ## 🔌 Endpoints de la API
 
-Base URL: `http://localhost:8000/api/`
+Base URL: `http://127.0.0.1:8000/api/`
 
 ### Propiedades
 
@@ -305,7 +329,7 @@ Base URL: `http://localhost:8000/api/`
 
 1. Abre Postman
 2. Clic en **Import** → selecciona el archivo `Inmobiliaria_Remolina_API.postman_collection.json` (si existe en el repo)
-3. Configura el entorno con `base_url = http://localhost:8000`
+3. Configura el entorno con `base_url = http://127.0.0.1:8000`
 
 ### Flujo de prueba recomendado
 
@@ -348,11 +372,20 @@ Para despliegue en producción, configura las siguientes variables en un archivo
 DEBUG=False
 SECRET_KEY=tu-clave-secreta-muy-larga-y-aleatoria
 ALLOWED_HOSTS=tudominio.com,www.tudominio.com
-DATABASE_URL=postgres://user:pass@host:5432/inmobiliaria
-CORS_ALLOWED_ORIGINS=https://tudominio.com
+DATABASE_URL=postgresql://user:pass@host:5432/inmobiliaria?sslmode=require
+CORS_ORIGINS=https://tudominio.com,https://www.tudominio.com
+CSRF_TRUSTED_ORIGINS=https://tudominio.com,https://www.tudominio.com
 ```
 
-> Para desarrollo local no es necesario, ya que `settings.py` usa valores por defecto seguros para entorno local.
+> Si vas a usar Supabase, copia la cadena de conexión PostgreSQL completa desde el panel de Supabase y pégala en `DATABASE_URL`.
+> El formato típico es:
+> `postgres://<usuario>:<password>@<host>.supabase.co:5432/<db>`.
+>
+> Para desarrollo local, no es necesario definir `DATABASE_URL`; `settings.py` usará SQLite si no existe.
+>
+> El driver de PostgreSQL ya quedó incluido en `backend/requirements.txt`, así que `pip install -r requirements.txt` instala también el soporte para Postgres.
+
+> No uses este archivo `.env` para guardar credenciales de prueba de usuarios finales. Déjalo solo para configuración de entorno.
 
 ---
 

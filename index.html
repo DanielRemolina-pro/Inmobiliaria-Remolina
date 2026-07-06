@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Remolina Inmobiliaria — Encuentra tu hogar ideal</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 
@@ -12,7 +12,7 @@
 <header class="navbar" id="navbar">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
+      <img src="assets/media/videos/logo.png" alt="Logo Remolina" class="nav-logo-img">
       <div class="nav-logo-text">
         <span class="logo-main">Remolina</span>
         <span class="logo-sub">Inmobiliaria</span>
@@ -46,7 +46,7 @@
 <section id="hero">
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline>
-      <source src="videos/hero.mp4" type="video/mp4">
+      <source src="assets/media/videos/hero.mp4" type="video/mp4">
     </video>
   </div>
 
@@ -58,7 +58,7 @@
       Encuentra tu<br><em>hogar ideal</em>
     </h1>
     <p class="hero-sub">
-      Propiedades exclusivas con asesoría personalizada. Más de 8 años conectando familias con espacios extraordinarios.
+      Propiedades exclusivas con asesoría personalizada. <span id="heroPropCount">0</span> propiedades disponibles para conectar familias con espacios extraordinarios.
     </p>
     <div class="hero-actions">
       <a href="propiedades.html" class="btn btn-primary btn-lg">Ver propiedades</a>
@@ -73,16 +73,12 @@
         <div class="stat-label">Propiedades</div>
       </div>
       <div class="stat-item">
-        <div class="stat-number" id="statClients">0</div>
-        <div class="stat-label">Clientes satisfechos</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">8 años</div>
-        <div class="stat-label">De experiencia</div>
-      </div>
-      <div class="stat-item">
         <div class="stat-number">98%</div>
         <div class="stat-label">Tasa de satisfacción</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">1</div>
+        <div class="stat-label">Municipios atendidos</div>
       </div>
     </div>
   </div>
@@ -255,7 +251,7 @@
       <div class="footer-brand">
         <span class="logo-main text-gold">Remolina</span>
         <span class="logo-sub" style="color:var(--ivory-dimmer); letter-spacing:0.2em; font-size:0.65rem; text-transform:uppercase;">Inmobiliaria</span>
-        <p>Conectando familias con propiedades extraordinarias en el Tolima desde 2016.</p>
+        <p>Conectando familias con propiedades extraordinarias en el Tolima desde 2025.</p>
       </div>
       <div class="footer-col">
         <h4>Navegación</h4>
@@ -308,284 +304,8 @@
 <!-- ═══ TOAST ═══ -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script type="module">
-const API_AUTH = 'http://127.0.0.1:8000/api/auth';
-const API_PROP = 'http://127.0.0.1:8000/api/propiedades';
-const API_FAV  = 'http://127.0.0.1:8000/api/favoritos';
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-function showToast(msg, type = '') {
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), 3200);
-}
-
-async function getCsrfToken() {
-  // En contexto cross-origin document.cookie no contiene cookies del dominio
-  // :8000, por eso siempre pedimos el token al endpoint y lo cacheamos.
-  if (window.__csrfToken) return window.__csrfToken;
-  const r = await fetch(`${API_AUTH}/csrf/`, { credentials: 'include' });
-  const data = await r.json();
-  window.__csrfToken = data.csrfToken;
-  return window.__csrfToken;
-}
-
-function formatPrice(price) {
-  if (!price) return 'Consultar precio';
-  return '$ ' + Number(price).toLocaleString('es-CO');
-}
-
-// ── Auth state ─────────────────────────────────────────────────────────────
-let currentUser = null;
-// FIX: favIds definido en scope global del módulo, garantiza disponibilidad
-// antes de renderizar cards
-let favIds = new Set();
-
-async function initAuth() {
-  try {
-    const res = await fetch(`${API_AUTH}/me/`, { credentials: 'include' });
-    if (res.ok) {
-      currentUser = await res.json();
-      document.getElementById('navUserName').textContent =
-        currentUser.first_name || currentUser.username;
-      document.getElementById('navUser').classList.remove('oculto');
-      document.getElementById('navLoginBtn').classList.add('oculto');
-
-      // FIX: await explícito para garantizar favIds poblado ANTES de retornar
-      // Antes, si el fetch de /ids/ tardaba, loadDestacadas podía renderizar
-      // sin saber cuáles propiedades estaban en favoritos
-      try {
-        const favRes = await fetch(`${API_FAV}/ids/`, { credentials: 'include' });
-        if (favRes.ok) {
-          const data = await favRes.json();
-          favIds = new Set(data.ids.map(String));
-        }
-      } catch {
-        // No bloquear si falla la carga de IDs
-        favIds = new Set();
-      }
-    } else {
-      document.getElementById('navUser').classList.add('oculto');
-      document.getElementById('navLoginBtn').classList.remove('oculto');
-    }
-  } catch {
-    document.getElementById('navUser').classList.add('oculto');
-    document.getElementById('navLoginBtn').classList.remove('oculto');
-  }
-}
-
-// ── Favorito toggle ────────────────────────────────────────────────────────
-async function toggleFav(propId, btn) {
-  if (!currentUser) {
-    showToast('Inicia sesión para guardar favoritos');
-    setTimeout(() => { window.location.href = 'login.html'; }, 1200);
-    return;
-  }
-
-  // FIX: deshabilitar botón durante la petición para evitar doble-clic
-  btn.disabled = true;
-
-  try {
-    const csrf = await getCsrfToken();
-    const res  = await fetch(`${API_FAV}/toggle/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ propiedad_id: propId }),
-    });
-
-    if (res.ok || res.status === 201) {
-      const data = await res.json();
-      if (data.action === 'added') {
-        favIds.add(String(propId));
-        btn.textContent = '♥';
-        btn.classList.add('active');
-        showToast('❤ Guardado en favoritos', 'success');
-      } else {
-        favIds.delete(String(propId));
-        btn.textContent = '♡';
-        btn.classList.remove('active');
-        showToast('Eliminado de favoritos');
-      }
-    } else {
-      showToast('No se pudo actualizar favorito', 'error');
-    }
-  } catch {
-    showToast('Error de conexión', 'error');
-  } finally {
-    // FIX: rehabilitar botón siempre, incluso si hubo error
-    btn.disabled = false;
-  }
-}
-
-// ── Build card ─────────────────────────────────────────────────────────────
-function buildCard(p, delay = 0) {
-  const img   = p.imagen_display || 'videos/dani.png';
-  const isFav = favIds.has(String(p.id));
-
-  const features = [
-    p.habitaciones ? `${p.habitaciones} 🛏` : null,
-    p.banos        ? `${p.banos} 🛁`        : null,
-    p.area         ? `${p.area} m²`         : null,
-  ].filter(Boolean);
-
-  const card = document.createElement('div');
-  card.className = 'propiedad-card reveal';
-  card.style.transitionDelay = `${delay}s`;
-  card.innerHTML = `
-    <div class="card-img-wrap">
-      <img src="${img}" alt="${p.titulo}" loading="lazy"
-           onerror="this.src='videos/dani.png'">
-      <span class="card-badge ${p.estado}">
-        ${p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
-      </span>
-      <button class="card-fav ${isFav ? 'active' : ''}" data-id="${p.id}" title="Guardar en favoritos">
-        ${isFav ? '♥' : '♡'}
-      </button>
-    </div>
-    <div class="card-body">
-      <div class="card-type">
-        ${p.tipo ? p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1) : 'Inmueble'}
-      </div>
-      <h3 class="card-title">${p.titulo}</h3>
-      <div class="card-location">📍 ${p.ciudad || 'Ibagué, Tolima'}</div>
-      <div class="card-price">${formatPrice(p.precio)}</div>
-      ${features.length
-        ? `<div class="card-features">${features.map(f => `<span>${f}</span>`).join('')}</div>`
-        : ''}
-      <div class="card-actions">
-        <a href="detalle.html?id=${p.id}" class="btn btn-sm btn-primary">Ver detalle</a>
-        <a href="#contacto" class="btn btn-sm btn-ghost-dark">Contacto</a>
-      </div>
-    </div>`;
-
-  // FIX: listener añadido con referencia directa al botón del DOM para
-  // que el estado (textContent, classList) se actualice correctamente
-  card.querySelector('.card-fav').addEventListener('click', (e) => {
-    toggleFav(p.id, e.currentTarget);
-  });
-
-  return card;
-}
-
-// ── Load destacadas ────────────────────────────────────────────────────────
-async function loadDestacadas() {
-  try {
-    const res  = await fetch(`${API_PROP}/destacadas/`, { credentials: 'include' });
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-
-    const skeleton = document.getElementById('propsSkeleton');
-    const grid     = document.getElementById('propsGrid');
-
-    skeleton.style.display = 'none';
-
-    if (!data.length) {
-      document.getElementById('propsError').style.display = 'block';
-      return;
-    }
-
-    // Mostrar máximo 4
-    data.slice(0, 4).forEach((p, i) => grid.appendChild(buildCard(p, i * 0.1)));
-    grid.style.display = '';
-
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('#propsGrid .reveal').forEach(el => obs.observe(el));
-
-  } catch {
-    document.getElementById('propsSkeleton').style.display = 'none';
-    document.getElementById('propsError').style.display    = 'block';
-  }
-}
-
-// ── Init ───────────────────────────────────────────────────────────────────
-// FIX: secuencia estricta — primero auth+favIds, luego renderizar cards
-// Antes el orden podía invertirse si alguna promesa resolvía antes
-(async () => {
-  await initAuth();       // garantiza currentUser y favIds listos
-  await loadDestacadas(); // renderiza cards ya con favIds correcto
-})();
-
-// ── Logout ─────────────────────────────────────────────────────────────────
-document.getElementById('navLogout')?.addEventListener('click', async (e) => {
-  e.preventDefault();
-  const csrf = await getCsrfToken();
-  await fetch(`${API_AUTH}/logout/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
-    credentials: 'include',
-  });
-  window.location.reload();
-});
-
-// ── Navbar scroll ──────────────────────────────────────────────────────────
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 30);
-});
-navbar.classList.add('scrolled');
-
-// ── Hamburger ──────────────────────────────────────────────────────────────
-document.getElementById('navHamburger').addEventListener('click', () => {
-  document.getElementById('navMenu').classList.toggle('open');
-});
-
-// ── FAB ────────────────────────────────────────────────────────────────────
-const fabMain  = document.getElementById('fab-main');
-const fabItems = document.getElementById('fab-items');
-fabMain.addEventListener('click', () => {
-  fabItems.classList.toggle('oculto');
-  fabMain.classList.toggle('open');
-});
-document.addEventListener('click', (e) => {
-  if (!fabMain.contains(e.target) && !fabItems.contains(e.target)) {
-    fabItems.classList.add('oculto');
-    fabMain.classList.remove('open');
-  }
-});
-
-// ── Reveal general ─────────────────────────────────────────────────────────
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal:not(#propsGrid .reveal)').forEach(el => revealObs.observe(el));
-
-// ── Contacto form ──────────────────────────────────────────────────────────
-document.getElementById('contactForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  document.getElementById('formSuccess').classList.add('show');
-  e.target.reset();
-  setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
-});
-
-// ── Counter animation ──────────────────────────────────────────────────────
-function animateCount(el, target) {
-  let n = 0;
-  const step = Math.ceil(target / 60);
-  const t = setInterval(() => {
-    n = Math.min(n + step, target);
-    el.textContent = n + (el.dataset.suffix || '');
-    if (n >= target) clearInterval(t);
-  }, 20);
-}
-const statObs = new IntersectionObserver(([e]) => {
-  if (e.isIntersecting) {
-    animateCount(document.getElementById('statProps'),   120);
-    animateCount(document.getElementById('statClients'), 340);
-    statObs.disconnect();
-  }
-});
-statObs.observe(document.getElementById('statProps'));
-
-// ── Video fallback ─────────────────────────────────────────────────────────
-document.querySelector('.hero-video-wrap video')?.addEventListener('error', () => {
-  document.querySelector('.hero-video-wrap video').style.display = 'none';
-});
-</script>
+<script src="assets/js/app-config.js"></script>
+<script src="assets/js/index.js"></script>
 
 <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
 <!-- ═══ TÉRMINOS Y CONDICIONES ═══ -->
@@ -607,7 +327,7 @@ document.querySelector('.hero-video-wrap video')?.addEventListener('error', () =
   ">
     <!-- Logo -->
     <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.75rem;">
-      <img src="videos/logo.png" alt="Logo" style="width:40px; height:40px; object-fit:contain; border-radius:8px;">
+      <img src="assets/media/videos/logo.png" alt="Logo" style="width:40px; height:40px; object-fit:contain; border-radius:8px;">
       <div>
         <span style="font-family:var(--ff-display); font-size:1.1rem; color:var(--ivory); display:block; line-height:1;">Remolina</span>
         <span style="font-size:0.72rem; color:var(--gold); letter-spacing:0.12em; text-transform:uppercase;">Inmobiliaria</span>
@@ -691,7 +411,7 @@ document.querySelector('.hero-video-wrap video')?.addEventListener('error', () =
   flex-direction:column; align-items:center; justify-content:center; text-align:center;
   padding:2rem;
 ">
-  <img src="videos/logo.png" alt="Logo" style="width:64px; opacity:0.4; margin-bottom:1.5rem;">
+  <img src="assets/media/videos/logo.png" alt="Logo" style="width:64px; opacity:0.4; margin-bottom:1.5rem;">
   <h2 style="font-family:var(--ff-display); font-size:1.8rem; font-weight:300; color:var(--ivory-dimmer); margin-bottom:0.75rem;">
     Acceso restringido
   </h2>
@@ -707,45 +427,7 @@ document.querySelector('.hero-video-wrap video')?.addEventListener('error', () =
   </button>
 </div>
 
-<script>
-  // Si ya aceptó antes, no mostrar el modal
-  if (localStorage.getItem('terminosAceptados') === 'si') {
-    document.getElementById('terminosOverlay').style.display = 'none';
-  } else {
-    document.body.style.overflow = 'hidden';
-  }
-
-  // Habilitar botón solo si marca el checkbox
-  document.getElementById('checkTerminos').addEventListener('change', function() {
-    const btn = document.getElementById('btnAceptar');
-    btn.disabled = !this.checked;
-    btn.style.opacity    = this.checked ? '1'            : '0.4';
-    btn.style.cursor     = this.checked ? 'pointer'      : 'not-allowed';
-  });
-
-  function aceptarTerminos() {
-    localStorage.setItem('terminosAceptados', 'si');
-    document.getElementById('terminosOverlay').style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  function rechazarTerminos() {
-    document.getElementById('terminosOverlay').style.display = 'none';
-    const bloqueado = document.getElementById('bloqueado');
-    bloqueado.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function volverATerminos() {
-    document.getElementById('bloqueado').style.display = 'none';
-    document.getElementById('terminosOverlay').style.display = 'flex';
-    document.getElementById('checkTerminos').checked = false;
-    const btn = document.getElementById('btnAceptar');
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-    btn.style.cursor  = 'not-allowed';
-  }
-</script>
+<script src="assets/js/index-terms.js"></script>
 
 </body>
 </html>

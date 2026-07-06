@@ -36,8 +36,26 @@ CAMBIOS DE SEGURIDAD respecto a la versión anterior
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BASE_DIR.parent
+
+# ── Carga opcional de variables de entorno desde .env --------------
+# Si existe backend/.env o la raíz del proyecto .env, se cargan las variables
+# en tiempo de arranque para facilitar el desarrollo local.
+for env_path in (BASE_DIR / '.env', ROOT_DIR / '.env'):
+    if env_path.exists():
+        for line in env_path.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = [part.strip() for part in line.split('=', 1)]
+            if not key or key in os.environ:
+                continue
+            if (value.startswith(('"', "'")) and value.endswith(('"', "'"))):
+                value = value[1:-1]
+            os.environ.setdefault(key, value)
 
 # ── Entorno: desarrollo o producción ─────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -59,6 +77,14 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS', 'localhost,127.0.0.1'
 ).split(',')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False' if DEBUG else 'True') == 'True'
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 
 # ── Aplicaciones ──────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -85,6 +111,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -113,12 +140,62 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ── Base de datos ─────────────────────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+def _build_database_config():
+    """
+    Construye la configuración de BD a partir de DATABASE_URL.
+
+    - Sin DATABASE_URL: usa SQLite para desarrollo local.
+    - Con postgres:// o postgresql://: usa PostgreSQL.
+    - Mantiene el proyecto libre de dependencias tipo django-environ.
+    """
+    database_url = os.environ.get('DATABASE_URL', '').strip()
+    if not database_url:
+        return {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+
+    parsed = urlparse(database_url)
+    if parsed.scheme not in ('postgres', 'postgresql'):
+        raise RuntimeError(
+            'DATABASE_URL debe usar postgres:// o postgresql://. '
+            f'Valor recibido: {parsed.scheme or "<vacío>"}'
+        )
+
+    config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed.path.lstrip('/'),
+        'USER': parsed.username or '',
+        'PASSWORD': parsed.password or '',
+        'HOST': parsed.hostname or 'localhost',
+        'PORT': parsed.port or 5432,
     }
+
+    query_params = dict(parse_qsl(parsed.query))
+    sslmode = query_params.get('sslmode')
+    if sslmode:
+        config['OPTIONS'] = {'sslmode': sslmode}
+
+    return config
+
+
+DATABASES = {
+    'default': _build_database_config(),
 }
+
+# ── Configuración de correo electrónico ───────────────────────────────────────
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 25))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@remolina.com')
+CONTACT_NOTIFY_EMAIL = os.environ.get('CONTACT_NOTIFY_EMAIL', 'admin@remolina.com')
 
 # ── Validación de contraseñas ─────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
@@ -137,6 +214,7 @@ USE_TZ        = True
 # ── Archivos estáticos y media ────────────────────────────────────────────────
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

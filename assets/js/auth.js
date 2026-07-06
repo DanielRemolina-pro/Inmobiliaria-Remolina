@@ -4,7 +4,7 @@
 //              /api/auth/logout/  /api/auth/me/
 // ═══════════════════════════════════════════════════════════════
 
-const API = 'http://127.0.0.1:8000/api/auth';
+const API = window.APP_CONFIG.authApi;
 
 // ── Obtener CSRF token (desde cookie o endpoint auxiliar) ─────────────────
 async function getCsrfToken() {

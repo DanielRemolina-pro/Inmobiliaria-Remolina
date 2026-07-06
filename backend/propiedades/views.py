@@ -38,11 +38,14 @@ CAMBIOS respecto a la versión anterior
     versiones futuras de DRF. Ahora cada acción tiene su permiso explícito.
 """
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.mail import EmailMultiAlternatives
 from django.middleware.csrf import get_token
+from django.utils.html import escape
 
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -51,15 +54,17 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from .filters import PropiedadFilter
-from .models import Favorito, Propiedad
+from .models import Contacto, Favorito, Propiedad, Visita
 from .permissions import IsAdminWithModelPerm, IsOwnerOrAdmin
 from .serializers import (
     CambioPasswordSerializer,
+    ContactoSerializer,
     FavoritoSerializer,
     PerfilSerializer,
     PropiedadListSerializer,
     PropiedadSerializer,
     RegistroSerializer,
+    VisitaSerializer,
 )
 
 
@@ -74,6 +79,7 @@ from .serializers import (
         parameters=[
             OpenApiParameter('tipo',       description='Filtrar por tipo',    required=False),
             OpenApiParameter('estado',     description='Filtrar por estado',  required=False),
+            OpenApiParameter('modalidad',  description='Filtrar por modalidad', required=False),
             OpenApiParameter('ciudad',     description='Ciudad (contiene)',   required=False),
             OpenApiParameter('precio_min', description='Precio mínimo',       required=False),
             OpenApiParameter('precio_max', description='Precio máximo',       required=False),
@@ -292,6 +298,123 @@ class FavoritoViewSet(viewsets.ViewSet):
             {'action': 'added', 'favorito_id': nuevo.pk},
             status=status.HTTP_201_CREATED,
         )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VISITA VIEWSET
+# ══════════════════════════════════════════════════════════════════════════════
+
+class VisitaViewSet(viewsets.ViewSet):
+    """
+    Gestión de visitas agendadas.
+
+    Endpoints:
+        POST /api/visitas/                → crear visita del usuario autenticado
+        GET  /api/visitas/horas_ocupadas/ → horas reservadas por propiedad y fecha
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(summary='Agendar visita', request=VisitaSerializer)
+    def create(self, request):
+        serializer = VisitaSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        visita = serializer.save()
+        return Response(
+            VisitaSerializer(visita, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(
+        summary='Horas ocupadas por propiedad y fecha',
+        description='Devuelve las horas ya reservadas para la propiedad y fecha consultadas.',
+    )
+    @action(detail=False, methods=['get'], url_path='horas_ocupadas')
+    def horas_ocupadas(self, request):
+        propiedad_id = request.query_params.get('propiedad')
+        fecha = request.query_params.get('fecha')
+
+        if not propiedad_id or not fecha:
+            return Response(
+                {'detail': 'Los parámetros propiedad y fecha son requeridos.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        horas = list(
+            Visita.objects.filter(propiedad_id=propiedad_id, fecha=fecha)
+            .order_by('hora')
+            .values_list('hora', flat=True)
+        )
+        return Response({'horas_ocupadas': horas})
+
+
+class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+    """Endpoint para guardar mensajes de contacto desde el frontend."""
+
+    queryset = Contacto.objects.all()
+    serializer_class = ContactoSerializer
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        contacto = serializer.save()
+        self._send_notification_email(contacto)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def _send_notification_email(self, contacto):
+        if not settings.CONTACT_NOTIFY_EMAIL:
+            return
+
+        subject = f'Nuevo mensaje de contacto: {contacto.nombre}'
+        body_text = (
+            f'Nuevo mensaje de contacto\n'
+            f'Nombre: {contacto.nombre}\n'
+            f'Correo: {contacto.email}\n'
+            f'Teléfono: {contacto.telefono or "(no enviado)"}\n'
+            f'Enviado: {contacto.creado:%Y-%m-%d %H:%M:%S}\n\n'
+            f'Mensaje:\n{contacto.mensaje}\n'
+        )
+
+        body_html = f'''
+            <html>
+              <body style="font-family: Arial, sans-serif; color: #111;">
+                <h2 style="color: #2c3e50;">Nuevo mensaje de contacto</h2>
+                <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+                  <tr>
+                    <td style="padding: 8px; font-weight: bold; width: 120px;">Nombre</td>
+                    <td style="padding: 8px;">{escape(contacto.nombre)}</td>
+                  </tr>
+                  <tr style="background: #f7f7f7;">
+                    <td style="padding: 8px; font-weight: bold;">Correo</td>
+                    <td style="padding: 8px;">{escape(contacto.email)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px; font-weight: bold;">Teléfono</td>
+                    <td style="padding: 8px;">{escape(contacto.telefono or '(no enviado)')}</td>
+                  </tr>
+                  <tr style="background: #f7f7f7;">
+                    <td style="padding: 8px; font-weight: bold;">Enviado</td>
+                    <td style="padding: 8px;">{contacto.creado:%Y-%m-%d %H:%M:%S}</td>
+                  </tr>
+                </table>
+                <h3 style="margin-top: 24px; color: #2c3e50;">Mensaje</h3>
+                <div style="padding: 16px; background: #f4f4f4; border-radius: 8px; white-space: pre-wrap;">{escape(contacto.mensaje)}</div>
+              </body>
+            </html>
+        '''
+
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [settings.CONTACT_NOTIFY_EMAIL]
+
+        try:
+            email = EmailMultiAlternatives(subject, body_text, from_email, recipient_list)
+            email.attach_alternative(body_html, 'text/html')
+            email.send(fail_silently=False)
+        except Exception:
+            # Si el correo falla, el mensaje ya quedó guardado en la base de datos.
+            pass
 
 
 # ══════════════════════════════════════════════════════════════════════════════

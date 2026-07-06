@@ -6,6 +6,7 @@ Configuración del panel de administración Django para Remolina Inmobiliaria.
 Incluye:
   - UserAdmin extendido con PerfilUsuario inline
   - PropiedadAdmin con list_display, filtros, búsqueda e imágenes en miniatura
+    - VisitaAdmin para seguimiento de citas agendadas
 """
 
 from django.contrib import admin
@@ -13,7 +14,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
 
-from .models import PerfilUsuario, Propiedad
+from .models import PerfilUsuario, Propiedad, Visita
 
 
 # ── PerfilUsuario inline ──────────────────────────────────────────────────────
@@ -131,3 +132,13 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(Visita)
+class VisitaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'propiedad', 'usuario', 'fecha', 'hora', 'creado')
+    list_display_links = ('id', 'propiedad')
+    list_filter = ('fecha', 'hora', 'propiedad')
+    search_fields = ('propiedad__titulo', 'usuario__username', 'usuario__email', 'nota')
+    ordering = ('fecha', 'hora', '-creado')
+    list_per_page = 20

@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (video) {
         const videos = [
-            "videos/hero.mp4",
-            "videos/super.mp4"
+            "assets/media/videos/hero.mp4",
+            "assets/media/videos/super.mp4"
         ];
         let index = 0;
         const cargarVideo = () => {
