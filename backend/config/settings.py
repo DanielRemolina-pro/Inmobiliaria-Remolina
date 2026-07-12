@@ -250,15 +250,20 @@ if DEBUG:
 else:
     CORS_ALLOW_ALL_ORIGINS  = False
     CORS_ALLOW_CREDENTIALS  = True
-    # Define en el entorno: CORS_ORIGINS=https://tu-dominio.com,https://www.tu-dominio.com
+    default_frontend_origin = 'https://inmobiliaria-remolina-web.onrender.com'
+    default_backend_origin = 'https://inmobiliaria-remolina.onrender.com'
+    default_origins = [default_frontend_origin, default_backend_origin]
     CORS_ALLOWED_ORIGINS = [
         o.strip()
-        for o in os.environ.get('CORS_ORIGINS', '').split(',')
+        for o in os.environ.get(
+            'CORS_ORIGINS',
+            ','.join(default_origins)
+        ).split(',')
         if o.strip()
     ]
-    CSRF_COOKIE_SAMESITE    = 'Lax'   # Protege contra CSRF cross-site
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SECURE      = True    # Solo enviar cookies en HTTPS
+    CSRF_COOKIE_SAMESITE    = 'None'
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SECURE      = True
     SESSION_COOKIE_SECURE   = True
 
 # ── Cookies: protección siempre activa ────────────────────────────────────────
@@ -276,6 +281,8 @@ CSRF_TRUSTED_ORIGINS = [
     o.strip()
     for o in os.environ.get(
         'CSRF_TRUSTED_ORIGINS',
+        'https://inmobiliaria-remolina-web.onrender.com,'
+        'https://inmobiliaria-remolina.onrender.com,'
         'http://localhost,http://localhost:5500,http://localhost:5501,'
         'http://127.0.0.1,http://127.0.0.1:5500,http://127.0.0.1:5501,'
         'http://127.0.0.1:8000',
