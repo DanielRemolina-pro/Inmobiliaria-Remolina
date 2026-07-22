@@ -44,6 +44,7 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.middleware.csrf import get_token
 from django.utils.html import escape
+import requests
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -364,18 +365,10 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def _send_notification_email(self, contacto):
-        if not settings.CONTACT_NOTIFY_EMAIL:
+        if not settings.CONTACT_NOTIFY_EMAIL or not settings.RESEND_API_KEY:
             return
 
         subject = f'Nuevo mensaje de contacto: {contacto.nombre}'
-        body_text = (
-            f'Nuevo mensaje de contacto\n'
-            f'Nombre: {contacto.nombre}\n'
-            f'Correo: {contacto.email}\n'
-            f'Teléfono: {contacto.telefono or "(no enviado)"}\n'
-            f'Enviado: {contacto.creado:%Y-%m-%d %H:%M:%S}\n\n'
-            f'Mensaje:\n{contacto.mensaje}\n'
-        )
 
         body_html = f'''
             <html>
@@ -405,17 +398,25 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             </html>
         '''
 
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [settings.CONTACT_NOTIFY_EMAIL]
-
         try:
-            email = EmailMultiAlternatives(subject, body_text, from_email, recipient_list)
-            email.attach_alternative(body_html, 'text/html')
-            email.send(fail_silently=False)
+            requests.post(
+                'https://api.resend.com/emails',
+                headers={
+                    'Authorization': f'Bearer {settings.RESEND_API_KEY}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'from': 'Remolina Inmobiliaria <onboarding@resend.dev>',
+                    'to': [settings.CONTACT_NOTIFY_EMAIL],
+                    'subject': subject,
+                    'html': body_html,
+                    'reply_to': contacto.email,
+                },
+                timeout=5,
+            )
         except Exception:
             # Si el correo falla, el mensaje ya quedó guardado en la base de datos.
             pass
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH VIEWSET

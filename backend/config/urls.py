@@ -41,6 +41,6 @@ urlpatterns = [
     path('api/redoc/',         SpectacularRedocView.as_view(url_name='schema'),   name='redoc'),
 ]
 
-# Media files en desarrollo
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media files: permitir que las imágenes subidas desde el admin/frontend
+# queden accesibles también en producción, no solo en DEBUG.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

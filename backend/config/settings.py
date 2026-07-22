@@ -227,7 +227,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #
 #  DESARROLLO (DEBUG=True):
 #    Permitimos todos los orígenes para facilitar las pruebas con Live Server,
-#    file://, Swagger, etc.
+#    file://, Sw agger, etc.
 #
 #  PRODUCCIÓN (DEBUG=False):
 #    Solo se aceptan los orígenes explícitos definidos en la variable de entorno
