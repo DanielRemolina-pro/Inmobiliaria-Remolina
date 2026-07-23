@@ -59,6 +59,9 @@ for env_path in (BASE_DIR / '.env', ROOT_DIR / '.env'):
 
 # ── Entorno: desarrollo o producción ─────────────────────────────────────────
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+SUPABASE_STORAGE_BUCKET = 'propiedades'
 
 # ── SECRET_KEY ────────────────────────────────────────────────────────────────
 # En producción NUNCA dejes un valor por defecto en el código.

@@ -19,6 +19,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers
+from .storage import subir_imagen_a_supabase 
 
 from .models import Contacto, Favorito, PerfilUsuario, Propiedad, Visita
 
@@ -219,6 +220,23 @@ class PropiedadSerializer(serializers.ModelSerializer):
                 {'imagen': 'Debes proporcionar una imagen de archivo o una URL de imagen.'}
             )
         return attrs
+    def create(self, validated_data):
+        archivo_imagen = validated_data.pop('imagen', None)
+        if archivo_imagen:
+            try:
+                validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
+            except Exception as e:
+                raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        archivo_imagen = validated_data.pop('imagen', None)
+        if archivo_imagen:
+            try:
+                validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
+            except Exception as e:
+                raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
+        return super().update(instance, validated_data)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
