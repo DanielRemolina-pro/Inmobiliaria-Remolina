@@ -362,8 +362,12 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         contacto = serializer.save()
+        self._ultimo_error_email = None
         self._send_notification_email(contacto)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = serializer.data
+        if self._ultimo_error_email:
+            data['_debug_email_error'] = self._ultimo_error_email
+        return Response(data, status=status.HTTP_201_CREATED)
 
     def _send_notification_email(self, contacto):
         try:
@@ -415,9 +419,10 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 },
                 timeout=5,
             )
-        except Exception:
-            print('ERROR AL ENVIAR CORREO DE CONTACTO:')
-            print(traceback.format_exc())
+        except Exception as e:
+            print('ERROR AL ENVIAR CORREO DE CONTACTO:', flush=True)
+            print(traceback.format_exc(), flush=True)
+            self._ultimo_error_email = str(e)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH VIEWSET
