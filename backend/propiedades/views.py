@@ -371,40 +371,7 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
 
     def _send_notification_email(self, contacto):
         try:
-            if not settings.CONTACT_NOTIFY_EMAIL or not settings.RESEND_API_KEY:
-                return
-
-            subject = f'Nuevo mensaje de contacto: {contacto.nombre}'
-
-            body_html = f'''
-                <html>
-                  <body style="font-family: Arial, sans-serif; color: #111;">
-                    <h2 style="color: #2c3e50;">Nuevo mensaje de contacto</h2>
-                    <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-                      <tr>
-                        <td style="padding: 8px; font-weight: bold; width: 120px;">Nombre</td>
-                        <td style="padding: 8px;">{escape(contacto.nombre)}</td>
-                      </tr>
-                      <tr style="background: #f7f7f7;">
-                        <td style="padding: 8px; font-weight: bold;">Correo</td>
-                        <td style="padding: 8px;">{escape(contacto.email)}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px; font-weight: bold;">Teléfono</td>
-                        <td style="padding: 8px;">{escape(contacto.telefono or '(no enviado)')}</td>
-                      </tr>
-                      <tr style="background: #f7f7f7;">
-                        <td style="padding: 8px; font-weight: bold;">Enviado</td>
-                        <td style="padding: 8px;">{contacto.creado:%Y-%m-%d %H:%M:%S}</td>
-                      </tr>
-                    </table>
-                    <h3 style="margin-top: 24px; color: #2c3e50;">Mensaje</h3>
-                    <div style="padding: 16px; background: #f4f4f4; border-radius: 8px; white-space: pre-wrap;">{escape(contacto.mensaje)}</div>
-                  </body>
-                </html>
-            '''
-
-            requests.post(
+            response = requests.post(
                 'https://api.resend.com/emails',
                 headers={
                     'Authorization': f'Bearer {settings.RESEND_API_KEY}',
@@ -419,10 +386,11 @@ class ContactoViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 },
                 timeout=5,
             )
-        except Exception as e:
+            print(f'RESEND STATUS: {response.status_code}', flush=True)
+            print(f'RESEND BODY: {response.text}', flush=True)
+        except Exception:
             print('ERROR AL ENVIAR CORREO DE CONTACTO:', flush=True)
             print(traceback.format_exc(), flush=True)
-            self._ultimo_error_email = str(e)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  AUTH VIEWSET
