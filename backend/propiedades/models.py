@@ -116,7 +116,7 @@ class Propiedad(models.Model):
     ubicacion = models.CharField(max_length=200, null=True, blank=True, verbose_name='Dirección / sector')
 
     # Precio y área
-    precio = models.IntegerField(null=True, blank=True, verbose_name='Precio (COP)')
+    precio = models.BigIntegerField(null=True, blank=True, verbose_name='Precio (COP)')
     area   = models.FloatField(null=True, blank=True, verbose_name='Área (m²)')
 
     # Características
