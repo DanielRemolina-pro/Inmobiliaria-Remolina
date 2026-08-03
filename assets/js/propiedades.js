@@ -428,13 +428,16 @@ async function abrirModalEditar(id) {
   form.classList.remove('oculto');
 }
 
-document.getElementById('f_imagen').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
+document.getElementById('f_imagenes').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  const file = files[0];
   const reader = new FileReader();
   reader.onload = ev => {
     document.getElementById('imgPreview').src = ev.target.result;
     document.getElementById('imgPreviewWrap').classList.remove('oculto');
+    document.getElementById('imgPreviewCount').textContent =
+      files.length > 1 ? `${files.length} imágenes seleccionadas` : '1 imagen seleccionada';
   };
   reader.readAsDataURL(file);
 });
@@ -458,10 +461,10 @@ form.addEventListener('submit', async e => {
   if (!titulo) { mostrarErrorModal('El título es obligatorio.'); return; }
   if (!tipo)   { mostrarErrorModal('Selecciona un tipo de propiedad.'); return; }
 
-  const imagenUrl  = document.getElementById('f_imagen_url').value.trim();
-  const imagenFile = document.getElementById('f_imagen').files[0];
-  if (!editId && !imagenUrl && !imagenFile) {
-    mostrarErrorModal('Para crear una propiedad debes agregar una URL de imagen o subir un archivo.');
+  const imagenUrl   = document.getElementById('f_imagen_url').value.trim();
+  const imagenFiles = Array.from(document.getElementById('f_imagenes').files);
+  if (!editId && !imagenUrl && imagenFiles.length === 0) {
+    mostrarErrorModal('Para crear una propiedad debes agregar una URL de imagen o subir al menos un archivo.');
     return;
   }
 
@@ -487,7 +490,7 @@ form.addEventListener('submit', async e => {
 
   fd.append('parqueadero', document.getElementById('f_parqueadero').checked ? 'true' : 'false');
 
-  if (imagenFile) fd.append('imagen', imagenFile);
+  imagenFiles.forEach(file => fd.append('imagenes', file));
 
   submitBtn.disabled = true;
   submitLabel.textContent = editId ? 'Guardando…' : 'Creando…';

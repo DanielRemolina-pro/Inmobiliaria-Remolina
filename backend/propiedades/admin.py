@@ -14,7 +14,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html
 
-from .models import PerfilUsuario, Propiedad, Visita
+from .models import PerfilUsuario, Propiedad, PropiedadImagen, Visita
 
 
 # ── PerfilUsuario inline ──────────────────────────────────────────────────────
@@ -26,6 +26,15 @@ class PerfilInline(admin.StackedInline):
     verbose_name_plural = 'Perfil extendido'
     fields             = ('telefono', 'ciudad', 'creado')
     readonly_fields    = ('creado',)
+
+
+class PropiedadImagenInline(admin.TabularInline):
+    model = PropiedadImagen
+    extra = 1
+    fields = ('imagen_url', 'orden')
+    readonly_fields = ()
+    verbose_name = 'Imagen adicional'
+    verbose_name_plural = 'Imágenes adicionales'
 
 
 @admin.register(Propiedad)
@@ -70,6 +79,7 @@ class PropiedadAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('imagen_preview',)
+    inlines = (PropiedadImagenInline,)
 
     # ── Métodos de visualización ──────────────────────────────────────────────
 

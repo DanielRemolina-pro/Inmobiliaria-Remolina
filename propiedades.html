@@ -261,20 +261,21 @@
           placeholder="https://ejemplo.com/foto.jpg">
       </div>
 
-      <!-- Fila 9: Imagen archivo -->
+      <!-- Fila 9: Imágenes archivos -->
       <div class="form-group">
-        <label for="f_imagen">
-          O sube un archivo
+        <label for="f_imagenes">
+          O sube varias fotos
           <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300;">
-            (JPG, PNG, WEBP — máx 5 MB)
+            (JPG, PNG, WEBP — máx 5 MB por archivo, puedes elegir varias)
           </span>
         </label>
-        <input type="file" id="f_imagen" name="imagen" accept="image/*"
+        <input type="file" id="f_imagenes" name="imagenes" accept="image/*" multiple
           style="color:var(--ivory-dim);">
         <!-- Preview de imagen -->
         <div id="imgPreviewWrap" class="oculto" style="margin-top:0.75rem;">
           <img id="imgPreview" src="" alt="Vista previa"
             style="max-height:120px; border-radius:8px; border:1px solid var(--border);">
+          <div id="imgPreviewCount" style="margin-top:0.5rem; font-size:0.82rem; color:var(--ivory-dimmer);"></div>
         </div>
       </div>
 

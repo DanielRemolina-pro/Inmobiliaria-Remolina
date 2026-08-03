@@ -65,7 +65,8 @@ class Propiedad(models.Model):
     Campos de imagen:
       - imagen     → archivo subido directamente (ImageField)
       - imagen_url → URL externa (Firebase Storage, Cloudinary, etc.)
-    Al menos uno debe estar presente.
+      - imagenes   → varias imágenes adicionales asociadas a la propiedad
+    Al menos una imagen o URL debe estar presente.
     """
 
     TIPO_CHOICES = [
@@ -152,10 +153,35 @@ class Propiedad(models.Model):
 
     @property
     def imagen_principal(self):
-        """Devuelve la URL de imagen preferida: archivo > URL externa."""
+        """Devuelve la URL de imagen preferida: archivo > URL externa > primera imagen relacionada."""
         if self.imagen:
             return self.imagen.url
-        return self.imagen_url or ''
+        if self.imagen_url:
+            return self.imagen_url
+        primera = self.imagenes.order_by('orden', 'id').first()
+        return primera.imagen_url if primera else ''
+
+
+class PropiedadImagen(models.Model):
+    """Imagen adicional asociada a una propiedad."""
+
+    propiedad = models.ForeignKey(
+        'Propiedad',
+        on_delete=models.CASCADE,
+        related_name='imagenes',
+        verbose_name='Propiedad',
+    )
+    imagen_url = models.URLField(verbose_name='URL de imagen')
+    orden = models.IntegerField(default=0, verbose_name='Orden de visualización')
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Creado el')
+
+    class Meta:
+        verbose_name = 'Imagen de propiedad'
+        verbose_name_plural = 'Imágenes de propiedades'
+        ordering = ['orden', 'id']
+
+    def __str__(self):
+        return f'Imagen de {self.propiedad.titulo} — {self.imagen_url}'
 
 
 # ── Favorito ──────────────────────────────────────────────────────────────────

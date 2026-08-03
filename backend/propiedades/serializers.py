@@ -21,7 +21,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from .storage import subir_imagen_a_supabase 
 
-from .models import Contacto, Favorito, PerfilUsuario, Propiedad, Visita
+from .models import Contacto, Favorito, PerfilUsuario, Propiedad, PropiedadImagen, Visita
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -148,6 +148,16 @@ class ContactoSerializer(serializers.ModelSerializer):
         fields = ('id', 'nombre', 'email', 'telefono', 'mensaje', 'creado')
         read_only_fields = ('id', 'creado')
 
+
+class PropiedadImagenSerializer(serializers.ModelSerializer):
+    """Serializer para exponer las imágenes adicionales de una propiedad."""
+
+    class Meta:
+        model = PropiedadImagen
+        fields = ('id', 'imagen_url', 'orden')
+        read_only_fields = ('id', 'orden')
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  PROPIEDAD SERIALIZERS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -169,6 +179,9 @@ class PropiedadListSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.imagen.url) if request else obj.imagen.url
         if obj.imagen_url:
             return obj.imagen_url
+        primera = obj.imagenes.order_by('orden', 'id').first()
+        if primera:
+            return request.build_absolute_uri(primera.imagen_url) if request else primera.imagen_url
         return None
 
 
@@ -177,6 +190,7 @@ class PropiedadSerializer(serializers.ModelSerializer):
     Serializer completo para creación, edición y detalle de propiedad.
     """
     imagen_display = serializers.SerializerMethodField(read_only=True)
+    imagenes = PropiedadImagenSerializer(many=True, read_only=True)
     imagen = serializers.ImageField(required=False, allow_null=True, write_only=False)
 
     class Meta:
@@ -184,7 +198,7 @@ class PropiedadSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'titulo', 'descripcion', 'precio', 'tipo',
             'ciudad', 'ubicacion', 'area', 'estado', 'modalidad',
-            'imagen', 'imagen_display', 'imagen_url',
+            'imagen', 'imagen_display', 'imagenes', 'imagen_url',
             'habitaciones', 'banos', 'parqueadero', 'estrato',
             'fecha', 'video_url',
         )
@@ -215,28 +229,57 @@ class PropiedadSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         imagen     = attrs.get('imagen')
         imagen_url = attrs.get('imagen_url')
-        if self.instance is None and not imagen and not imagen_url:
+        request    = self.context.get('request')
+        imagenes   = request.FILES.getlist('imagenes') if request else []
+        if self.instance is None and not imagen and not imagen_url and not imagenes:
             raise serializers.ValidationError(
-                {'imagen': 'Debes proporcionar una imagen de archivo o una URL de imagen.'}
+                {'imagen': 'Debes proporcionar una imagen de archivo, una URL de imagen o subir al menos un archivo.'}
             )
         return attrs
+
+    def _crear_imagenes_relacionadas(self, propiedad, archivos):
+        for orden, archivo in enumerate(archivos):
+            try:
+                imagen_url = subir_imagen_a_supabase(archivo)
+            except Exception as e:
+                raise serializers.ValidationError({'imagenes': f'No se pudo subir la imagen {archivo.name}: {e}'})
+            PropiedadImagen.objects.create(
+                propiedad=propiedad,
+                imagen_url=imagen_url,
+                orden=orden,
+            )
+
     def create(self, validated_data):
         archivo_imagen = validated_data.pop('imagen', None)
+        request = self.context.get('request')
+        archivos_extra = request.FILES.getlist('imagenes') if request else []
+
         if archivo_imagen:
             try:
                 validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
             except Exception as e:
                 raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
-        return super().create(validated_data)
+
+        propiedad = super().create(validated_data)
+        if archivos_extra:
+            self._crear_imagenes_relacionadas(propiedad, archivos_extra)
+        return propiedad
 
     def update(self, instance, validated_data):
         archivo_imagen = validated_data.pop('imagen', None)
+        request = self.context.get('request')
+        archivos_extra = request.FILES.getlist('imagenes') if request else []
+
         if archivo_imagen:
             try:
                 validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
             except Exception as e:
                 raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
-        return super().update(instance, validated_data)
+
+        propiedad = super().update(instance, validated_data)
+        if archivos_extra:
+            self._crear_imagenes_relacionadas(propiedad, archivos_extra)
+        return propiedad
 
 
 # ══════════════════════════════════════════════════════════════════════════════
