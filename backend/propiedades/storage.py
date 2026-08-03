@@ -9,10 +9,9 @@ from django.conf import settings
 from supabase import create_client
 
 
-def subir_imagen_a_supabase(archivo):
+def subir_archivo_a_supabase(archivo, carpeta='propiedades'):
     """
-    Sube un archivo de imagen (InMemoryUploadedFile de Django) a Supabase Storage
-    y devuelve la URL pública resultante.
+    Sube un archivo a Supabase Storage y devuelve la URL pública resultante.
     """
     if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
         raise RuntimeError(
@@ -21,15 +20,20 @@ def subir_imagen_a_supabase(archivo):
 
     supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
 
-    extension = archivo.name.split('.')[-1] if '.' in archivo.name else 'jpg'
-    nombre_archivo = f'{uuid.uuid4().hex}.{extension}'
+    extension = archivo.name.split('.')[-1] if '.' in archivo.name else 'bin'
+    nombre_archivo = f'{carpeta.rstrip("/")}/{uuid.uuid4().hex}.{extension}'
 
     contenido = archivo.read()
 
     supabase.storage.from_(settings.SUPABASE_STORAGE_BUCKET).upload(
         path=nombre_archivo,
         file=contenido,
-        file_options={'content-type': archivo.content_type or 'image/jpeg'},
+        file_options={'content-type': archivo.content_type or 'application/octet-stream'},
     )
 
     return supabase.storage.from_(settings.SUPABASE_STORAGE_BUCKET).get_public_url(nombre_archivo)
+
+
+def subir_imagen_a_supabase(archivo):
+    """Alias para subir imágenes y mantener compatibilidad con el código actual."""
+    return subir_archivo_a_supabase(archivo, carpeta='propiedades')

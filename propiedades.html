@@ -289,15 +289,22 @@
       <div class="form-group">
         <label for="f_video_url">
           Video de la propiedad
-          <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300;">
-            (enlace de YouTube o video directo .mp4)
+          <span style="font-size:0.78rem; color:var(--ivory-dimmer); font-weight:300; display:block;">
+            Pega un enlace de YouTube o sube un video local (.mp4, .mov)
           </span>
         </label>
         <input type="url" id="f_video_url" name="video_url"
           placeholder="https://youtube.com/watch?v=... o https://ejemplo.com/video.mp4">
       </div>
 
-      <!-- Fila 11: Descripción -->
+      <!-- Fila 11: Video archivo -->
+      <div class="form-group">
+        <label for="f_video">O sube un archivo de video</label>
+        <input type="file" id="f_video" name="video" accept="video/*"
+          style="color:var(--ivory-dim);">
+      </div>
+
+      <!-- Fila 12: Descripción -->
       <div class="form-group">
         <label for="f_descripcion">Descripción</label>
         <textarea id="f_descripcion" name="descripcion" rows="3"

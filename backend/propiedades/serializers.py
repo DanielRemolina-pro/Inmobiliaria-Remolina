@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers
-from .storage import subir_imagen_a_supabase 
+from .storage import subir_archivo_a_supabase, subir_imagen_a_supabase 
 
 from .models import Contacto, Favorito, PerfilUsuario, Propiedad, PropiedadImagen, Visita
 
@@ -191,7 +191,8 @@ class PropiedadSerializer(serializers.ModelSerializer):
     """
     imagen_display = serializers.SerializerMethodField(read_only=True)
     imagenes = PropiedadImagenSerializer(many=True, read_only=True)
-    imagen = serializers.ImageField(required=False, allow_null=True, write_only=False)
+    imagen = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    video = serializers.FileField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model  = Propiedad
@@ -199,8 +200,9 @@ class PropiedadSerializer(serializers.ModelSerializer):
             'id', 'titulo', 'descripcion', 'precio', 'tipo',
             'ciudad', 'ubicacion', 'area', 'estado', 'modalidad',
             'imagen', 'imagen_display', 'imagenes', 'imagen_url',
+            'video', 'video_url',
             'habitaciones', 'banos', 'parqueadero', 'estrato',
-            'fecha', 'video_url',
+            'fecha',
         )
 
     def get_imagen_display(self, obj):
@@ -251,6 +253,7 @@ class PropiedadSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         archivo_imagen = validated_data.pop('imagen', None)
+        archivo_video = validated_data.pop('video', None)
         request = self.context.get('request')
         archivos_extra = request.FILES.getlist('imagenes') if request else []
 
@@ -259,6 +262,12 @@ class PropiedadSerializer(serializers.ModelSerializer):
                 validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
             except Exception as e:
                 raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
+
+        if archivo_video:
+            try:
+                validated_data['video_url'] = subir_archivo_a_supabase(archivo_video, carpeta='propiedades/videos')
+            except Exception as e:
+                raise serializers.ValidationError({'video': f'No se pudo subir el video: {e}'})
 
         propiedad = super().create(validated_data)
         if archivos_extra:
@@ -267,6 +276,7 @@ class PropiedadSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         archivo_imagen = validated_data.pop('imagen', None)
+        archivo_video = validated_data.pop('video', None)
         request = self.context.get('request')
         archivos_extra = request.FILES.getlist('imagenes') if request else []
 
@@ -275,6 +285,12 @@ class PropiedadSerializer(serializers.ModelSerializer):
                 validated_data['imagen_url'] = subir_imagen_a_supabase(archivo_imagen)
             except Exception as e:
                 raise serializers.ValidationError({'imagen': f'No se pudo subir la imagen: {e}'})
+
+        if archivo_video:
+            try:
+                validated_data['video_url'] = subir_archivo_a_supabase(archivo_video, carpeta='propiedades/videos')
+            except Exception as e:
+                raise serializers.ValidationError({'video': f'No se pudo subir el video: {e}'})
 
         propiedad = super().update(instance, validated_data)
         if archivos_extra:

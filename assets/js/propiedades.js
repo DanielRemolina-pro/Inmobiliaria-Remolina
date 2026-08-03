@@ -410,6 +410,7 @@ async function abrirModalEditar(id) {
     document.getElementById('f_parqueadero').checked = !!p.parqueadero;
     document.getElementById('f_imagen_url').value   = p.imagen_url    || '';
     document.getElementById('f_video_url').value    = p.video_url     || '';
+    document.getElementById('f_video').value        = '';
     document.getElementById('f_descripcion').value  = p.descripcion   || '';
     document.getElementById('f_fecha').value        = p.fecha         || '';
 
@@ -463,6 +464,7 @@ form.addEventListener('submit', async e => {
 
   const imagenUrl   = document.getElementById('f_imagen_url').value.trim();
   const imagenFiles = Array.from(document.getElementById('f_imagenes').files);
+  const videoFile   = document.getElementById('f_video').files[0];
   if (!editId && !imagenUrl && imagenFiles.length === 0) {
     mostrarErrorModal('Para crear una propiedad debes agregar una URL de imagen o subir al menos un archivo.');
     return;
@@ -491,6 +493,7 @@ form.addEventListener('submit', async e => {
   fd.append('parqueadero', document.getElementById('f_parqueadero').checked ? 'true' : 'false');
 
   imagenFiles.forEach(file => fd.append('imagenes', file));
+  if (videoFile) fd.append('video', videoFile);
 
   submitBtn.disabled = true;
   submitLabel.textContent = editId ? 'Guardando…' : 'Creando…';
